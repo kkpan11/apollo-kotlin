@@ -5,14 +5,14 @@
 //
 package com.example.fragment_used_twice.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.AnyAdapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.json.readTypename
-import com.apollographql.apollo3.api.missingField
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.AnyAdapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.json.readTypename
+import com.apollographql.apollo.api.missingField
 import kotlin.Any
 import kotlin.String
 import kotlin.Suppress
@@ -20,8 +20,7 @@ import kotlin.collections.List
 
 public object HumanDetailsImpl_ResponseAdapter {
   public object Data : Adapter<HumanDetailsImpl.Data> {
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        HumanDetailsImpl.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): HumanDetailsImpl.Data {
       val __typename = reader.readTypename()
       return when(__typename) {
         "Human",
@@ -37,8 +36,7 @@ public object HumanDetailsImpl_ResponseAdapter {
       `value`: HumanDetailsImpl.Data,
     ) {
       when(value) {
-        is HumanDetailsImpl.CharacterData -> CharacterData.toJson(writer, customScalarAdapters,
-            value)
+        is HumanDetailsImpl.CharacterData -> CharacterData.toJson(writer, customScalarAdapters, value)
         is HumanDetailsImpl.OtherData -> OtherData.toJson(writer, customScalarAdapters, value)
       }
     }

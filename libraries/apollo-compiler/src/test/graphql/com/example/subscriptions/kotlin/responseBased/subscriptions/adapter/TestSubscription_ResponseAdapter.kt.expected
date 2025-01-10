@@ -5,15 +5,15 @@
 //
 package com.example.subscriptions.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.IntAdapter
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.IntAdapter
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
 import com.example.subscriptions.TestSubscription
 import kotlin.Int
 import kotlin.String
@@ -23,8 +23,7 @@ public object TestSubscription_ResponseAdapter {
   public object Data : Adapter<TestSubscription.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("commentAdded")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        TestSubscription.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestSubscription.Data {
       var _commentAdded: TestSubscription.Data.CommentAdded? = null
 
       while (true) {
@@ -51,8 +50,7 @@ public object TestSubscription_ResponseAdapter {
     private object CommentAdded : Adapter<TestSubscription.Data.CommentAdded> {
       public val RESPONSE_NAMES: List<String> = listOf("id", "content")
 
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          TestSubscription.Data.CommentAdded {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestSubscription.Data.CommentAdded {
         var _id: Int? = null
         var _content: String? = null
 

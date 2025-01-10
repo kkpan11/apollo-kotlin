@@ -5,21 +5,19 @@
 //
 package com.example.not_all_combinations_are_needed.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.NullableStringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.NullableStringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
 import kotlin.String
 import kotlin.collections.List
 
 public object BFragmentImpl_ResponseAdapter {
-  public object BFragment : Adapter<com.example.not_all_combinations_are_needed.fragment.BFragment>
-      {
+  public object BFragment : Adapter<com.example.not_all_combinations_are_needed.fragment.BFragment> {
     public val RESPONSE_NAMES: List<String> = listOf("fieldB1")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        com.example.not_all_combinations_are_needed.fragment.BFragment {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): com.example.not_all_combinations_are_needed.fragment.BFragment {
       var _fieldB1: String? = null
 
       while (true) {

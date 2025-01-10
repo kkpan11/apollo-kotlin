@@ -5,16 +5,16 @@
 //
 package com.example.data_builders
 
-import com.apollographql.apollo3.annotations.ApolloAdaptableWith
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.DefaultFakeResolver
-import com.apollographql.apollo3.api.FakeResolver
-import com.apollographql.apollo3.api.Query
-import com.apollographql.apollo3.api.buildData
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.annotations.ApolloAdaptableWith
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.DefaultFakeResolver
+import com.apollographql.apollo.api.FakeResolver
+import com.apollographql.apollo.api.Query
+import com.apollographql.apollo.api.buildData
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.data_builders.adapter.AnimalQuery_ResponseAdapter
 import com.example.data_builders.fragment.CatFragment
 import com.example.data_builders.fragment.DogFragment
@@ -31,8 +31,6 @@ import kotlin.Unit
 import com.example.data_builders.type.Query as CompiledQuery
 
 public class AnimalQuery() : Query<AnimalQuery.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -85,12 +83,14 @@ public class AnimalQuery() : Query<AnimalQuery.Data> {
     public data class CatAnimal(
       override val __typename: String,
       override val meow: String,
-    ) : Animal, CatFragment
+    ) : Animal,
+        CatFragment
 
     public data class DogAnimal(
       override val __typename: String,
       override val woof: String,
-    ) : Animal, DogFragment
+    ) : Animal,
+        DogFragment
 
     public data class OtherAnimal(
       override val __typename: String,
@@ -124,13 +124,11 @@ public class AnimalQuery() : Query<AnimalQuery.Data> {
      * ```
      */
     public val OPERATION_DOCUMENT: String
-      get() =
-          "query AnimalQuery { animal { __typename ...CatFragment ...DogFragment } }  fragment CatFragment on Cat { meow }  fragment DogFragment on Dog { woof }"
+      get() = "query AnimalQuery { animal { __typename ...CatFragment ...DogFragment } }  fragment CatFragment on Cat { meow }  fragment DogFragment on Dog { woof }"
 
     public const val OPERATION_NAME: String = "AnimalQuery"
 
-    public fun Data(resolver: FakeResolver = DefaultFakeResolver(__Schema.all),
-        block: QueryBuilder.() -> Unit = {}): Data = buildData(
+    public fun Data(resolver: FakeResolver = DefaultFakeResolver(__Schema.all), block: QueryBuilder.() -> Unit = {}): Data = buildData(
       CompiledQuery,
       block,
       AnimalQuery_ResponseAdapter.Data,

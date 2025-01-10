@@ -5,21 +5,20 @@
 //
 package com.example.input_object_oneof.type.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.NullableStringAdapter
-import com.apollographql.apollo3.api.Optional
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
-import com.apollographql.apollo3.api.present
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.NullableStringAdapter
+import com.apollographql.apollo.api.Optional
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
+import com.apollographql.apollo.api.present
 import com.example.input_object_oneof.type.FindUserInput
 import kotlin.IllegalStateException
 
 public object FindUserInput_InputAdapter : Adapter<FindUserInput> {
-  override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-      FindUserInput = throw IllegalStateException("Input type used in output position")
+  override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): FindUserInput = throw IllegalStateException("Input type used in output position")
 
   override fun toJson(
     writer: JsonWriter,
@@ -36,13 +35,11 @@ public object FindUserInput_InputAdapter : Adapter<FindUserInput> {
     }
     if (value.identity is Optional.Present) {
       writer.name("identity")
-      FindUserBySocialNetworkInput_InputAdapter.obj().nullable().present().toJson(writer,
-          customScalarAdapters, value.identity)
+      FindUserBySocialNetworkInput_InputAdapter.obj().nullable().present().toJson(writer, customScalarAdapters, value.identity)
     }
     if (value.friends is Optional.Present) {
       writer.name("friends")
-      FindUserByFriendInput_InputAdapter.obj().nullable().present().toJson(writer,
-          customScalarAdapters, value.friends)
+      FindUserByFriendInput_InputAdapter.obj().nullable().present().toJson(writer, customScalarAdapters, value.friends)
     }
   }
 }

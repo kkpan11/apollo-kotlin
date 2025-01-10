@@ -5,23 +5,21 @@
 //
 package com.example.fragment_with_inline_fragment.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.NullableStringAdapter
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.missingField
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.NullableStringAdapter
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.missingField
 import kotlin.String
 import kotlin.collections.List
 
 public object DroidDetailsImpl_ResponseAdapter {
-  public object DroidDetails :
-      Adapter<com.example.fragment_with_inline_fragment.fragment.DroidDetails> {
+  public object DroidDetails : Adapter<com.example.fragment_with_inline_fragment.fragment.DroidDetails> {
     public val RESPONSE_NAMES: List<String> = listOf("name", "primaryFunction")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        com.example.fragment_with_inline_fragment.fragment.DroidDetails {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): com.example.fragment_with_inline_fragment.fragment.DroidDetails {
       var _name: String? = null
       var _primaryFunction: String? = null
 

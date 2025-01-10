@@ -5,14 +5,14 @@
 //
 package com.example.data_builders.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.json.readTypename
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.json.readTypename
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.obj
 import com.example.data_builders.CharacterQuery
 import kotlin.String
 import kotlin.Suppress
@@ -22,8 +22,7 @@ public object CharacterQuery_ResponseAdapter {
   public object Data : Adapter<CharacterQuery.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("character")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        CharacterQuery.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): CharacterQuery.Data {
       var _character: CharacterQuery.Data.Character? = null
 
       while (true) {
@@ -48,8 +47,7 @@ public object CharacterQuery_ResponseAdapter {
     }
 
     private object Character : Adapter<CharacterQuery.Data.Character> {
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          CharacterQuery.Data.Character {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): CharacterQuery.Data.Character {
         val __typename = reader.readTypename()
         return when(__typename) {
           "Human",
@@ -67,12 +65,9 @@ public object CharacterQuery_ResponseAdapter {
         `value`: CharacterQuery.Data.Character,
       ) {
         when(value) {
-          is CharacterQuery.Data.HumanCharacter -> HumanCharacter.toJson(writer,
-              customScalarAdapters, value)
-          is CharacterQuery.Data.DroidCharacter -> DroidCharacter.toJson(writer,
-              customScalarAdapters, value)
-          is CharacterQuery.Data.OtherCharacter -> OtherCharacter.toJson(writer,
-              customScalarAdapters, value)
+          is CharacterQuery.Data.HumanCharacter -> HumanCharacter.toJson(writer, customScalarAdapters, value)
+          is CharacterQuery.Data.DroidCharacter -> DroidCharacter.toJson(writer, customScalarAdapters, value)
+          is CharacterQuery.Data.OtherCharacter -> OtherCharacter.toJson(writer, customScalarAdapters, value)
         }
       }
     }
@@ -128,8 +123,8 @@ public object CharacterQuery_ResponseAdapter {
     }
 
     public object DroidCharacter {
-      public val RESPONSE_NAMES: List<String> = listOf("__typename", "id", "name",
-          "primaryFunction")
+      public val RESPONSE_NAMES: List<String> =
+          listOf("__typename", "id", "name", "primaryFunction")
 
       public fun fromJson(
         reader: JsonReader,

@@ -5,15 +5,16 @@
 //
 package com.example.starships.selections
 
-import com.apollographql.apollo3.api.CompiledArgument
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CompiledSelection
-import com.apollographql.apollo3.api.CompiledVariable
-import com.apollographql.apollo3.api.list
-import com.apollographql.apollo3.api.notNull
+import com.apollographql.apollo.api.CompiledArgument
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CompiledSelection
+import com.apollographql.apollo.api.CompiledVariable
+import com.apollographql.apollo.api.list
+import com.apollographql.apollo.api.notNull
 import com.example.starships.type.GraphQLFloat
 import com.example.starships.type.GraphQLID
 import com.example.starships.type.GraphQLString
+import com.example.starships.type.Query
 import com.example.starships.type.Starship
 import kotlin.collections.List
 
@@ -38,7 +39,7 @@ public object TestQuerySelections {
           name = "starship",
           type = Starship.type
         ).arguments(listOf(
-          CompiledArgument.Builder("id").value(CompiledVariable("id")).build()
+          CompiledArgument.Builder(Query.__starship_id).value(CompiledVariable("id")).build()
         ))
         .selections(__starship)
         .build()

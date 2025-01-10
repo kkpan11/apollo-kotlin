@@ -5,13 +5,13 @@
 //
 package com.example.test_inline
 
-import com.apollographql.apollo3.annotations.ApolloAdaptableWith
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Query
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.annotations.ApolloAdaptableWith
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Query
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.test_inline.adapter.GetPage_ResponseAdapter
 import com.example.test_inline.selections.GetPageSelections
 import kotlin.Any
@@ -23,8 +23,6 @@ import kotlin.collections.List
 import com.example.test_inline.type.Query as CompiledQuery
 
 public class GetPage() : Query<GetPage.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -67,8 +65,7 @@ public class GetPage() : Query<GetPage.Data> {
 
       public companion object {
         @Suppress("USELESS_CAST")
-        public fun Collection.asParticularCollection(): ParticularCollectionCollection? = this as?
-            ParticularCollectionCollection
+        public fun Collection.asParticularCollection(): ParticularCollectionCollection? = this as? ParticularCollectionCollection
       }
     }
 
@@ -91,12 +88,14 @@ public class GetPage() : Query<GetPage.Data> {
         override val title: String,
         override val __typename: String,
         public val image: String,
-      ) : Item, Collection.Item
+      ) : Item,
+          Collection.Item
 
       public data class OtherItem(
         override val title: String,
         override val __typename: String,
-      ) : Item, Collection.Item
+      ) : Item,
+          Collection.Item
     }
 
     public data class OtherCollection(
@@ -137,8 +136,7 @@ public class GetPage() : Query<GetPage.Data> {
      * ```
      */
     public val OPERATION_DOCUMENT: String
-      get() =
-          "query GetPage { collection { __typename items { title } ... on ParticularCollection { items { __typename ... on ParticularItem { image } } } } }"
+      get() = "query GetPage { collection { __typename items { title } ... on ParticularCollection { items { __typename ... on ParticularItem { image } } } } }"
 
     public const val OPERATION_NAME: String = "GetPage"
   }

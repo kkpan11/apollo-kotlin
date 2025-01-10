@@ -5,8 +5,8 @@
 //
 package com.example.mutation_create_review.schema
 
-import com.apollographql.apollo3.api.CompiledNamedType
-import com.apollographql.apollo3.api.ObjectType
+import com.apollographql.apollo.api.CompiledNamedType
+import com.apollographql.apollo.api.ObjectType
 import kotlin.collections.List
 
 /**
@@ -14,16 +14,7 @@ import kotlin.collections.List
  */
 internal object __Schema {
   public val all: List<CompiledNamedType> = listOf(
-        com.example.mutation_create_review.type.Character.type,
-            com.example.mutation_create_review.type.Droid.type,
-            com.example.mutation_create_review.type.Episode.type,
-            com.example.mutation_create_review.type.Human.type,
-            com.example.mutation_create_review.type.Mutation.type,
-            com.example.mutation_create_review.type.Review.type,
-            com.example.mutation_create_review.type.SearchResult.type,
-            com.example.mutation_create_review.type.Starship.type)
+        com.example.mutation_create_review.type.Character.type, com.example.mutation_create_review.type.Droid.type, com.example.mutation_create_review.type.Episode.type, com.example.mutation_create_review.type.Human.type, com.example.mutation_create_review.type.Mutation.type, com.example.mutation_create_review.type.Review.type, com.example.mutation_create_review.type.SearchResult.type, com.example.mutation_create_review.type.Starship.type)
 
-
-  public fun possibleTypes(type: CompiledNamedType): List<ObjectType> =
-      com.apollographql.apollo3.api.possibleTypes(all, type)
+  public fun possibleTypes(type: CompiledNamedType): List<ObjectType> = com.apollographql.apollo.api.possibleTypes(all, type)
 }

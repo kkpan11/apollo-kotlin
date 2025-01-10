@@ -6,13 +6,12 @@ import com.apollographql.ijplugin.settings.studio.ApiKeyDialog
 import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.project.Project
 import com.intellij.ui.AddEditRemovePanel
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import javax.swing.JCheckBox
 import javax.swing.JComponent
 import javax.swing.JPanel
-
 
 class SettingsComponent(private val project: Project) {
   private val propertyGraph = PropertyGraph()
@@ -95,15 +94,18 @@ class SettingsComponent(private val project: Project) {
           }
 
           cell(addEditRemovePanel!!)
-              .horizontalAlign(HorizontalAlign.FILL)
+              .align(AlignX.FILL)
               .comment(ApolloBundle.message("settings.studio.apiKeys.comment"))
         }
       }
     }
-    row {
-      checkBox(ApolloBundle.message("settings.telemetry.telemetryEnabled.text"))
-          .comment(ApolloBundle.message("settings.telemetry.telemetryEnabled.comment"))
-          .bindSelected(telemetryEnabledProperty)
+
+    group(ApolloBundle.message("settings.telemetry.telemetryEnabled.title")) {
+      row {
+        checkBox(ApolloBundle.message("settings.telemetry.telemetryEnabled.text"))
+            .comment(ApolloBundle.message("settings.telemetry.telemetryEnabled.comment"))
+            .bindSelected(telemetryEnabledProperty)
+      }
     }
   }
 
@@ -122,7 +124,7 @@ class ApiKeysModel : AddEditRemovePanel.TableModel<ApolloKotlinServiceConfigurat
   }
 
   override fun getField(o: ApolloKotlinServiceConfiguration, columnIndex: Int) = when (columnIndex) {
-    0 -> o.apolloKotlinServiceId.gradleProjectName
+    0 -> o.apolloKotlinServiceId.gradleProjectPath
     1 -> o.apolloKotlinServiceId.serviceName
     2 -> "••••••••"
     3 -> o.graphOsGraphName

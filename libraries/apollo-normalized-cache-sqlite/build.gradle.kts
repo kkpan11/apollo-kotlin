@@ -2,19 +2,19 @@ plugins {
   id("org.jetbrains.kotlin.multiplatform")
 }
 
-apply(plugin = "com.android.library")
 apply(plugin = "app.cash.sqldelight")
 
 apolloLibrary(
-    javaModuleName = "com.apollographql.apollo3.cache.normalized.sql",
+    namespace = "com.apollographql.apollo.cache.normalized.sql",
     withLinux = false,
     withJs = false, // https://github.com/cashapp/sqldelight/pull/1486
-    withWasm = false
+    withWasm = false,
+    androidOptions = AndroidOptions(withCompose = false)
 )
 
 configure<app.cash.sqldelight.gradle.SqlDelightExtension> {
   databases.create("JsonDatabase") {
-    packageName = "com.apollographql.apollo3.cache.normalized.sql.internal.json"
+    packageName = "com.apollographql.apollo.cache.normalized.sql.internal.json"
     schemaOutputDirectory = file("sqldelight/json/schema")
     srcDirs("src/commonMain/sqldelight/json/")
   }
@@ -26,7 +26,7 @@ kotlin {
       dependencies {
         api(project(":apollo-api"))
         api(project(":apollo-normalized-cache-api"))
-        api(project(":apollo-normalized-cache"))
+        api(libs.sqldelight.runtime)
       }
     }
 
@@ -45,6 +45,7 @@ kotlin {
     findByName("jvmTest")?.apply {
       dependencies {
         implementation(libs.truth)
+        implementation(libs.slf4j.nop)
       }
     }
 
@@ -68,15 +69,6 @@ kotlin {
         implementation(project(":apollo-testing-support"))
       }
     }
-  }
-}
-
-configure<com.android.build.gradle.LibraryExtension> {
-  compileSdk = libs.versions.android.sdkversion.compile.get().toInt()
-  namespace = "com.apollographql.apollo3.cache.normalized.sql"
-
-  defaultConfig {
-    minSdk = libs.versions.android.sdkversion.min.get().toInt()
   }
 }
 

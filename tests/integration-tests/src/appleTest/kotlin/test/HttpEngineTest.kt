@@ -1,16 +1,16 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.annotations.ApolloInternal
-import com.apollographql.apollo3.exception.ApolloNetworkException
-import com.apollographql.apollo3.integration.normalizer.HeroNameQuery
-import com.apollographql.apollo3.mockserver.KtorTcpServer
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.enqueueString
-import com.apollographql.apollo3.mpp.currentTimeMillis
-import com.apollographql.apollo3.network.http.DefaultHttpEngine
-import com.apollographql.apollo3.network.http.get
-import com.apollographql.apollo3.testing.internal.runTest
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.annotations.ApolloInternal
+import com.apollographql.apollo.exception.ApolloNetworkException
+import com.apollographql.apollo.integration.normalizer.HeroNameQuery
+import com.apollographql.mockserver.KtorTcpServer
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.enqueueString
+import com.apollographql.apollo.mpp.currentTimeMillis
+import com.apollographql.apollo.network.http.DefaultHttpEngine
+import com.apollographql.apollo.network.http.get
+import com.apollographql.apollo.testing.internal.runTest
 import platform.Foundation.NSError
 import platform.Foundation.NSURLErrorCannotConnectToHost
 import platform.Foundation.NSURLErrorDomain
@@ -72,13 +72,13 @@ class HttpEngineTest {
 
     val before = currentTimeMillis()
     try {
-      println("Before " + currentTimeMillis())
+      //println("Before " + currentTimeMillis())
       engine.get(mockServer.url()).execute()
-      println("After " + currentTimeMillis())
+      //println("After " + currentTimeMillis())
       fail("We expected an exception")
     } catch (e: ApolloNetworkException) {
       val platformCause = e.platformCause
-      println(platformCause)
+      //println(platformCause)
       assertTrue(platformCause is NSError)
       assertEquals(platformCause.domain, NSURLErrorDomain)
       assertEquals(platformCause.code, NSURLErrorTimedOut)

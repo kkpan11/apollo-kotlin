@@ -4,7 +4,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 plugins {
   id("com.android.application")
   id("org.jetbrains.kotlin.android")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
+  alias(libs.plugins.kotlin.compose)
 }
 
 android {
@@ -43,15 +44,11 @@ android {
   buildFeatures {
     compose = true
   }
-
-  composeOptions {
-    kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
-  }
 }
 
 dependencies {
-  implementation("com.apollographql.apollo3:apollo-runtime")
-  implementation("com.apollographql.apollo3:apollo-normalized-cache")
+  implementation("com.apollographql.apollo:apollo-runtime")
+  implementation("com.apollographql.apollo:apollo-normalized-cache")
   implementation(libs.compose.runtime)
   implementation(libs.compose.ui)
   implementation(libs.androidx.profileinstaller)
@@ -90,6 +87,6 @@ apollo {
     //generateCompiledField.set(false)
     addTypename.set("always")
     srcDir(generateQueries)
-    schemaFile.set(file("src/main/graphql/api/schema.graphqls"))
+    schemaFiles.from(file("src/main/graphql/api/schema.graphqls"))
   }
 }

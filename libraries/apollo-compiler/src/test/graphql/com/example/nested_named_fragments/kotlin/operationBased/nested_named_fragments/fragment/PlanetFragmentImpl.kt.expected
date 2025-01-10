@@ -5,21 +5,19 @@
 //
 package com.example.nested_named_fragments.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Fragment
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
-import com.example.nested_named_fragments.fragment.selections.planetFragmentSelections
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Fragment
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
+import com.example.nested_named_fragments.fragment.selections.PlanetFragmentSelections
 import com.example.nested_named_fragments.type.Planet
 import kotlin.Any
 import kotlin.Boolean
 import kotlin.Int
 
 public class PlanetFragmentImpl() : Fragment<PlanetFragment> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -32,13 +30,12 @@ public class PlanetFragmentImpl() : Fragment<PlanetFragment> {
     // This fragment doesn't have any variable
   }
 
-  override fun adapter(): Adapter<PlanetFragment> =
-      PlanetFragmentImpl_ResponseAdapter.PlanetFragment.obj()
+  override fun adapter(): Adapter<PlanetFragment> = PlanetFragmentImpl_ResponseAdapter.PlanetFragment.obj()
 
   override fun rootField(): CompiledField = CompiledField.Builder(
     name = "data",
     type = Planet.type
   )
-  .selections(selections = planetFragmentSelections.__root)
+  .selections(selections = PlanetFragmentSelections.__root)
   .build()
 }

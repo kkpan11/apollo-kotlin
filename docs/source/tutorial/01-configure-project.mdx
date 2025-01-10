@@ -8,7 +8,7 @@ In this step, you'll import the starter project and add the Apollo Kotlin SDK to
 
 ```
 git clone https://github.com/apollographql/apollo-kotlin-tutorial
-cd apollo-kotlin-tutorial/compose
+cd apollo-kotlin-tutorial
 ```
 
 The starter project is in the `start` folder. 
@@ -31,21 +31,41 @@ You should see a list with static placeholder data:
 
 Now let's add Apollo Kotlin to the project.
 
+## Install the Android Studio Plugin (optional)
+
+We recommend installing the [Android Studio Plugin](https://www.apollographql.com/docs/kotlin/testing/android-studio-plugin/) to benefit from autocomplete in your `.graphql`, live code generation and more.
+
+Go to `Android Studio` -> `Setting...` -> `Plugins`. In the "Marketplace" tab, search for "Apollo" and install the Apollo Android Studio Plugin
+
+<img src="images/add-ij-plugin.png" alt="A dialog showing how to install the Android Studio plugin" class="screenshot"/>
+
 ## Get the latest version of Apollo Kotlin
 
 You can find the latest version of Apollo Kotlin from the [GitHub releases page](https://github.com/apollographql/apollo-kotlin/releases). It is also displayed at the top of the [apollo-kotlin repo](https://github.com/apollographql/apollo-kotlin/).
 
-This tutorial uses `4.0.0-beta.4` because it is the latest version at the time of writing. Feel free to use a more recent version if one is available.
+This tutorial uses `4.1.0` because it is the latest version at the time of writing. Feel free to use a more recent version if one is available.
 
 ## Apply the plugin
 
-Apply the Apollo plugin in `app/build.gradle.kts`. There are two `build.gradle.kts` in the project. Make sure to use the one in the `app` directory this time. The Apollo plugin ID is `com.apollographql.apollo3`.
+Add the Apollo plugin to the version catalog in `gradle/libs.versions.toml`. The Apollo plugin ID is `com.apollographql.apollo`:
+
+```toml title="gradle/libs.versions.toml"
+[versions]
+# ...
+apollo = "4.0.0"
+
+[plugins]
+# ...
+apollo = { id = "com.apollographql.apollo", version.ref = "apollo" }
+```
+
+Then apply the Apollo plugin in `app/build.gradle.kts`. There are two `build.gradle.kts` in the project - make sure to use the one in the `app` directory.
 
 ```kotlin title="app/build.gradle.kts"
 plugins {
-    id("com.android.application")
+    alias(libs.plugins.android.application)
     // ...
-    id("com.apollographql.apollo3") version "4.0.0-beta.4"
+    alias(libs.plugins.apollo)
 }
 ```
 
@@ -67,12 +87,22 @@ apollo {
 
 ## Add dependencies
 
-Now add `apollo-runtime` to the list of dependencies. This is the code that executes queries and parses responses.
+Now add `apollo-runtime` to the list of dependencies. This is the part of the SDK that executes queries and parses responses.
+
+First add the dependency to the version catalog:
+
+```toml title="gradle/libs.versions.toml"
+[libraries]
+# ...
+apollo-runtime = { module = "com.apollographql.apollo:apollo-runtime", version.ref = "apollo"}
+```
+
+Then add the dependency to the `app/build.gradle.kts` file:
 
 ```kotlin title="app/build.gradle.kts"
 dependencies {
     // ...
-    implementation("com.apollographql.apollo3:apollo-runtime:4.0.0-beta.4")
+  implementation(libs.apollo.runtime)
 }
 ```
 
