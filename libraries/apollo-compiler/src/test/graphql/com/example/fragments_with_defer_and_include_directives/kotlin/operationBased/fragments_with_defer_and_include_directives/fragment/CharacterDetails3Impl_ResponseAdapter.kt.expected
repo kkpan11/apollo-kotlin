@@ -5,23 +5,21 @@
 //
 package com.example.fragments_with_defer_and_include_directives.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.AnyAdapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.missingField
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.AnyAdapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.missingField
 import kotlin.Any
 import kotlin.String
 import kotlin.collections.List
 
 public object CharacterDetails3Impl_ResponseAdapter {
-  public object CharacterDetails3 :
-      Adapter<com.example.fragments_with_defer_and_include_directives.fragment.CharacterDetails3> {
+  public object CharacterDetails3 : Adapter<com.example.fragments_with_defer_and_include_directives.fragment.CharacterDetails3> {
     public val RESPONSE_NAMES: List<String> = listOf("birthDate")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        com.example.fragments_with_defer_and_include_directives.fragment.CharacterDetails3 {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): com.example.fragments_with_defer_and_include_directives.fragment.CharacterDetails3 {
       var _birthDate: Any? = null
 
       while (true) {

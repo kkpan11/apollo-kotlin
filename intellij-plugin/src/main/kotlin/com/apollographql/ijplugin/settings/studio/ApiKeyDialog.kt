@@ -12,12 +12,12 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.LabelPosition
 import com.intellij.ui.dsl.builder.bindItem
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.dsl.builder.toNullableProperty
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import java.util.Vector
 import javax.swing.DefaultComboBoxModel
 
@@ -40,7 +40,7 @@ class ApiKeyDialog(
     val isEdit = apolloKotlinServiceId != null
     title = ApolloBundle.message(if (isEdit) "settings.studio.apiKeyDialog.title.edit" else "settings.studio.apiKeyDialog.title.add")
     gradleProjectName = if (isEdit) {
-      apolloKotlinServiceId!!.gradleProjectName
+      apolloKotlinServiceId!!.gradleProjectPath
     } else {
       getGradleProjectNames().firstOrNull() ?: ""
     }
@@ -56,7 +56,7 @@ class ApiKeyDialog(
     row {
       comboBox(getGradleProjectNames())
           .label(ApolloBundle.message("settings.studio.apiKeyDialog.gradleProjectName.label"), LabelPosition.TOP)
-          .horizontalAlign(HorizontalAlign.FILL)
+          .align(AlignX.FILL)
           .bindItem(::gradleProjectName.toNullableProperty())
           .focused()
           .applyToComponent {
@@ -69,7 +69,7 @@ class ApiKeyDialog(
     row {
       gradleProjectNameComboBox = comboBox(getApolloKotlinServiceNames(gradleProjectName))
           .label(ApolloBundle.message("settings.studio.apiKeyDialog.apolloKotlinServiceName.label"), LabelPosition.TOP)
-          .horizontalAlign(HorizontalAlign.FILL)
+          .align(AlignX.FILL)
           .bindItem(::apolloKotlinServiceName.toNullableProperty())
           .component
     }
@@ -79,7 +79,7 @@ class ApiKeyDialog(
           .applyToComponent {
             emptyText.text = ApolloBundle.message("settings.studio.apiKeyDialog.graphOsApiKey.emptyText")
           }
-          .horizontalAlign(HorizontalAlign.FILL)
+          .align(AlignX.FILL)
           .bindText(::graphOsApiKey)
           .validationOnApplyNotBlank()
           .validationOnApply { component ->
@@ -98,7 +98,7 @@ class ApiKeyDialog(
     row {
       graphOsServiceNameTextField = textField()
           .label(ApolloBundle.message("settings.studio.apiKeyDialog.graphOsGraphName.label"), LabelPosition.TOP)
-          .horizontalAlign(HorizontalAlign.FILL)
+          .align(AlignX.FILL)
           .bindText(::graphOsServiceName)
           .validationOnApplyNotBlank()
           .component
@@ -106,12 +106,12 @@ class ApiKeyDialog(
   }.withPreferredWidth(450)
 
   private fun getGradleProjectNames(): List<String> {
-    return GradleToolingModelService.getApolloKotlinServices(project).map { it.id.gradleProjectName }.distinct().sorted()
+    return GradleToolingModelService.getApolloKotlinServices(project).map { it.id.gradleProjectPath }.distinct().sorted()
   }
 
   private fun getApolloKotlinServiceNames(gradleProjectName: String): List<String> {
     return GradleToolingModelService.getApolloKotlinServices(project)
-        .filter { it.id.gradleProjectName == gradleProjectName }
+        .filter { it.id.gradleProjectPath == gradleProjectName }
         .map { it.id.serviceName }
         .sorted()
   }

@@ -5,15 +5,15 @@
 //
 package com.example.nested_named_fragments.fragment.selections
 
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CompiledFragment
-import com.apollographql.apollo3.api.CompiledSelection
-import com.apollographql.apollo3.api.notNull
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CompiledFragment
+import com.apollographql.apollo.api.CompiledSelection
+import com.apollographql.apollo.api.notNull
 import com.example.nested_named_fragments.type.GraphQLString
 import com.example.nested_named_fragments.type.Planet
 import kotlin.collections.List
 
-public object pilotFragmentSelections {
+public object PilotFragmentSelections {
   private val __homeworld: List<CompiledSelection> = listOf(
         CompiledField.Builder(
           name = "__typename",
@@ -22,7 +22,7 @@ public object pilotFragmentSelections {
         CompiledFragment.Builder(
           typeCondition = "Planet",
           possibleTypes = listOf("Planet")
-        ).selections(planetFragmentSelections.__root)
+        ).selections(PlanetFragmentSelections.__root)
         .build()
       )
 

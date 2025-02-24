@@ -5,16 +5,16 @@
 //
 package com.example.union_fragment.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.json.readTypename
-import com.apollographql.apollo3.api.list
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.json.readTypename
+import com.apollographql.apollo.api.list
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
 import com.example.union_fragment.TestQuery
 import kotlin.String
 import kotlin.Suppress
@@ -24,8 +24,7 @@ public object TestQuery_ResponseAdapter {
   public object Data : Adapter<TestQuery.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("search")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        TestQuery.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data {
       var _search: List<TestQuery.Data.Search?>? = null
 
       while (true) {
@@ -50,8 +49,7 @@ public object TestQuery_ResponseAdapter {
     }
 
     private object Search : Adapter<TestQuery.Data.Search> {
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          TestQuery.Data.Search {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data.Search {
         val __typename = reader.readTypename()
         return when(__typename) {
           "Starship",
@@ -67,8 +65,7 @@ public object TestQuery_ResponseAdapter {
         `value`: TestQuery.Data.Search,
       ) {
         when(value) {
-          is TestQuery.Data.StarshipSearch -> StarshipSearch.toJson(writer, customScalarAdapters,
-              value)
+          is TestQuery.Data.StarshipSearch -> StarshipSearch.toJson(writer, customScalarAdapters, value)
           is TestQuery.Data.OtherSearch -> OtherSearch.toJson(writer, customScalarAdapters, value)
         }
       }

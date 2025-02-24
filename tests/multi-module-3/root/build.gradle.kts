@@ -1,6 +1,8 @@
+import com.apollographql.apollo.annotations.ApolloExperimental
+
 plugins {
   id("org.jetbrains.kotlin.jvm")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -15,8 +17,8 @@ apollo {
     alwaysGenerateTypesMatching.set(listOf("Cat"))
     isADependencyOf(project(":multi-module-3-child"))
     generateApolloMetadata.set(true)
+    @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
-    languageVersion.set("1.5")
   }
 }
 

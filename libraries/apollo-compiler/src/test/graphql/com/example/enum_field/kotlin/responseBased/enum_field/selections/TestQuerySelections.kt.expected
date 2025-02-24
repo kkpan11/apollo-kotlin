@@ -5,13 +5,13 @@
 //
 package com.example.enum_field.selections
 
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CompiledSelection
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CompiledSelection
 import com.example.enum_field.type.Gravity
 import com.example.enum_field.type.GravityAsEnum
 import kotlin.collections.List
 
-public object TestQuerySelections {
+internal object TestQuerySelections {
   public val __root: List<CompiledSelection> = listOf(
         CompiledField.Builder(
           name = "gravity",

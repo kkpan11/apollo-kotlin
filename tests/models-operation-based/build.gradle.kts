@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -11,13 +11,13 @@ kotlin {
       dependencies {
         implementation(libs.apollo.runtime)
         implementation(libs.apollo.normalizedcache)
-        implementation(libs.apollo.adapters)
       }
     }
 
     findByName("commonTest")?.apply {
       dependencies {
         implementation(libs.apollo.testingsupport)
+        implementation(libs.apollo.mockserver)
       }
     }
 
@@ -41,12 +41,11 @@ fun configureApollo(generateKotlinModels: Boolean) {
       codegenModels.set("operationBased")
       this.generateKotlinModels.set(generateKotlinModels)
       configureConnection(generateKotlinModels)
-      languageVersion.set("1.5")
     }
   }
 }
 
-fun com.apollographql.apollo3.gradle.api.Service.configureConnection(generateKotlinModels: Boolean) {
+fun com.apollographql.apollo.gradle.api.Service.configureConnection(generateKotlinModels: Boolean) {
   outputDirConnection {
     if (generateKotlinModels) {
       connectToKotlinSourceSet("commonTest")

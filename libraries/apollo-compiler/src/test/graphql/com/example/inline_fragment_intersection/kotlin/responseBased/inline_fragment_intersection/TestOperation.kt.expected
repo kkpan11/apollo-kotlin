@@ -5,13 +5,13 @@
 //
 package com.example.inline_fragment_intersection
 
-import com.apollographql.apollo3.annotations.ApolloAdaptableWith
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Query
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.annotations.ApolloAdaptableWith
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Query
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.inline_fragment_intersection.adapter.TestOperation_ResponseAdapter
 import com.example.inline_fragment_intersection.selections.TestOperationSelections
 import com.example.inline_fragment_intersection.type.Race
@@ -25,8 +25,6 @@ import kotlin.collections.List
 import com.example.inline_fragment_intersection.type.Query as CompiledQuery
 
 public class TestOperation() : Query<TestOperation.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -140,13 +138,15 @@ public class TestOperation() : Query<TestOperation.Data> {
         override val lifeExpectancy: Double?,
         override val isFamous: Boolean?,
         public val race: Race,
-      ) : Friend, BeingRandom.WookieFriend
+      ) : Friend,
+          BeingRandom.WookieFriend
 
       public data class OtherFriend(
         override val __typename: String,
         override val name: String,
         override val isFamous: Boolean?,
-      ) : Friend, BeingRandom.Friend
+      ) : Friend,
+          BeingRandom.Friend
     }
 
     public data class BeingWookieRandom(
@@ -154,7 +154,8 @@ public class TestOperation() : Query<TestOperation.Data> {
       override val name: String,
       override val friends: List<Friend>,
       override val race: Race,
-    ) : BeingRandom, WookieRandom {
+    ) : BeingRandom,
+        WookieRandom {
       public sealed interface Friend : BeingRandom.Friend, WookieRandom.Friend {
         override val __typename: String
 
@@ -172,13 +173,17 @@ public class TestOperation() : Query<TestOperation.Data> {
         override val __typename: String,
         override val name: String,
         override val lifeExpectancy: Double?,
-      ) : Friend, BeingRandom.WookieFriend, WookieRandom.Friend
+      ) : Friend,
+          BeingRandom.WookieFriend,
+          WookieRandom.Friend
 
       public data class OtherFriend(
         override val __typename: String,
         override val name: String,
         override val lifeExpectancy: Double?,
-      ) : Friend, BeingRandom.Friend, WookieRandom.Friend
+      ) : Friend,
+          BeingRandom.Friend,
+          WookieRandom.Friend
     }
 
     public data class OtherRandom(
@@ -238,8 +243,7 @@ public class TestOperation() : Query<TestOperation.Data> {
      * ```
      */
     public val OPERATION_DOCUMENT: String
-      get() =
-          "query TestOperation { random { __typename ... on Being { __typename name friends { __typename name ... on Wookie { lifeExpectancy } } ... on Human { profilePictureUrl friends { __typename isFamous ... on Wookie { race } } } } ... on Wookie { race friends { lifeExpectancy } } ... on Being { friends { __typename ... on Wookie { lifeExpectancy } } } } }"
+      get() = "query TestOperation { random { __typename ... on Being { __typename name friends { __typename name ... on Wookie { lifeExpectancy } } ... on Human { profilePictureUrl friends { __typename isFamous ... on Wookie { race } } } } ... on Wookie { race friends { lifeExpectancy } } ... on Being { friends { __typename ... on Wookie { lifeExpectancy } } } } }"
 
     public const val OPERATION_NAME: String = "TestOperation"
   }

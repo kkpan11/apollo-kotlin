@@ -5,16 +5,16 @@
 //
 package com.example.target_name.adapter
 
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.NullableAnyAdapter
-import com.apollographql.apollo3.api.Optional
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
-import com.apollographql.apollo3.api.present
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.NullableAnyAdapter
+import com.apollographql.apollo.api.Optional
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
+import com.apollographql.apollo.api.present
 import com.example.target_name.TestQuery
-import com.example.target_name.type.adapter.renamedEnum_ResponseAdapter
-import com.example.target_name.type.adapter.renamedInput_InputAdapter
+import com.example.target_name.type.adapter.RenamedEnum_ResponseAdapter
+import com.example.target_name.type.adapter.RenamedInput_InputAdapter
 import kotlin.Boolean
 import kotlin.Suppress
 
@@ -31,8 +31,7 @@ public object TestQuery_VariablesAdapter {
   ) {
     if (value.input is Optional.Present) {
       writer.name("input")
-      renamedInput_InputAdapter.obj().nullable().present().toJson(writer, customScalarAdapters,
-          value.input)
+      RenamedInput_InputAdapter.obj().nullable().present().toJson(writer, customScalarAdapters, value.input)
     }
     if (value.scalar is Optional.Present) {
       writer.name("scalar")
@@ -40,8 +39,7 @@ public object TestQuery_VariablesAdapter {
     }
     if (value.`enum` is Optional.Present) {
       writer.name("enum")
-      renamedEnum_ResponseAdapter.nullable().present().toJson(writer, customScalarAdapters,
-          value.`enum`)
+      RenamedEnum_ResponseAdapter.nullable().present().toJson(writer, customScalarAdapters, value.`enum`)
     }
   }
 }

@@ -4,13 +4,13 @@ import com.apollographql.ijplugin.ApolloBundle
 import com.apollographql.ijplugin.refactoring.migration.item.DeletesElements
 import com.apollographql.ijplugin.refactoring.migration.item.MigrationItem
 import com.apollographql.ijplugin.refactoring.migration.item.MigrationItemUsageInfo
+import com.apollographql.ijplugin.util.containingKtFile
 import com.apollographql.ijplugin.util.containingKtFileImportList
 import com.apollographql.ijplugin.util.isGenerated
 import com.apollographql.ijplugin.util.logd
 import com.apollographql.ijplugin.util.logw
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.history.LocalHistory
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
@@ -26,13 +26,12 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.refactoring.BaseRefactoringProcessor
 import com.intellij.refactoring.ui.UsageViewDescriptorAdapter
 import com.intellij.usageView.UsageInfo
+import com.intellij.util.application
 import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.resolve.ImportPath
 import org.jetbrains.plugins.gradle.util.GradleConstants
-
-const val apollo2 = "com.apollographql.apollo"
-const val apollo3 = "com.apollographql.apollo3"
 
 /**
  * Generic processor for migrations.
@@ -83,14 +82,23 @@ abstract class ApolloMigrationRefactoringProcessor(project: Project) : BaseRefac
     try {
       val usageInfos = migrationItems
           .flatMap { migrationItem ->
-            migrationItem.findUsages(myProject, migration!!, searchScope)
-                .filter { usageInfo ->
-                  // Filter out all generated code usages. We don't want generated code to come up in findUsages.
-                  usageInfo.virtualFile?.isGenerated(myProject) != true //&&
+            logd("Finding usages for $migrationItem")
+            try {
+              migrationItem.findUsages(myProject, migration!!, searchScope)
+                  .filter { usageInfo ->
+                    // Filter out all generated code usages. We don't want generated code to come up in findUsages.
+                    usageInfo.virtualFile?.isGenerated(myProject) != true &&
 
-                  // Also filter out usages outside of projects (see https://youtrack.jetbrains.com/issue/KTIJ-26411)
-                  usageInfo.virtualFile?.let { searchScope.contains(it) } == true
-                }
+                    // Also filter out usages outside of projects (see https://youtrack.jetbrains.com/issue/KTIJ-26411)
+                    usageInfo.virtualFile?.let { searchScope.contains(it) } == true
+                  }
+                  .also {
+                    logd("Found ${it.size} usages for $migrationItem")
+                  }
+            } catch (t: Throwable) {
+              logw(t, "Error while finding usages for $migrationItem")
+              emptyList()
+            }
           }
           .toMutableList()
       // If an element must be deleted, make sure we keep the UsageInfo and remove any other pointing to the same element.
@@ -105,7 +113,7 @@ abstract class ApolloMigrationRefactoringProcessor(project: Project) : BaseRefac
       }
       return usageInfos.toTypedArray()
     } finally {
-      ApplicationManager.getApplication().invokeLater({ WriteAction.run<Throwable>(::finishMigration) }, myProject.disposed)
+      application.invokeLater({ WriteAction.run<Throwable>(::finishMigration) }, myProject.disposed)
     }
   }
 
@@ -134,8 +142,10 @@ abstract class ApolloMigrationRefactoringProcessor(project: Project) : BaseRefac
         val migrationItem = (usage as MigrationItemUsageInfo).migrationItem
         try {
           if (!usage.isValid) continue
+          val containingKtFile = usage.element.containingKtFile()
           maybeAddImports(usage, migrationItem)
           migrationItem.performRefactoring(myProject, migration!!, usage)
+          if (containingKtFile != null) removeDuplicateImports(containingKtFile)
         } catch (t: Throwable) {
           logw(t, "Error while performing refactoring for $migrationItem")
         }
@@ -160,6 +170,22 @@ abstract class ApolloMigrationRefactoringProcessor(project: Project) : BaseRefac
             importList.add(psiFactory.createImportDirective(ImportPath.fromString(importToAdd)))
           }
         }
+      }
+    }
+  }
+
+  /**
+   * Imports are automatically optimized in most cases, but some duplications are sometimes missed.
+   */
+  private fun removeDuplicateImports(ktFile: KtFile) {
+    val importList = ktFile.importList ?: return
+    val seenImports = mutableSetOf<String>()
+    for (importDirective in importList.imports) {
+      val importPath = importDirective.importPath?.pathStr ?: continue
+      if (seenImports.contains(importPath)) {
+        importDirective.delete()
+      } else {
+        seenImports.add(importPath)
       }
     }
   }

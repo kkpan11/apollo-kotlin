@@ -5,23 +5,22 @@
 //
 package com.example.input_object_type.type.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.DoubleAdapter
-import com.apollographql.apollo3.api.IntAdapter
-import com.apollographql.apollo3.api.NullableDoubleAdapter
-import com.apollographql.apollo3.api.Optional
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
-import com.apollographql.apollo3.api.present
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.DoubleAdapter
+import com.apollographql.apollo.api.IntAdapter
+import com.apollographql.apollo.api.NullableDoubleAdapter
+import com.apollographql.apollo.api.Optional
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
+import com.apollographql.apollo.api.present
 import com.example.input_object_type.type.ColorInput
 import kotlin.IllegalStateException
 
 public object ColorInput_InputAdapter : Adapter<ColorInput> {
-  override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): ColorInput
-      = throw IllegalStateException("Input type used in output position")
+  override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): ColorInput = throw IllegalStateException("Input type used in output position")
 
   override fun toJson(
     writer: JsonWriter,
@@ -42,13 +41,11 @@ public object ColorInput_InputAdapter : Adapter<ColorInput> {
     }
     if (value.enumWithDefaultValue is Optional.Present) {
       writer.name("enumWithDefaultValue")
-      Episode_ResponseAdapter.nullable().present().toJson(writer, customScalarAdapters,
-          value.enumWithDefaultValue)
+      Episode_ResponseAdapter.nullable().present().toJson(writer, customScalarAdapters, value.enumWithDefaultValue)
     }
     if (value.reviewRefInput is Optional.Present) {
       writer.name("reviewRefInput")
-      ReviewRefInput_InputAdapter.obj().nullable().present().toJson(writer, customScalarAdapters,
-          value.reviewRefInput)
+      ReviewRefInput_InputAdapter.obj().nullable().present().toJson(writer, customScalarAdapters, value.reviewRefInput)
     }
   }
 }

@@ -5,7 +5,7 @@
 //
 package com.example.case_sensitive_enum.type
 
-import com.apollographql.apollo3.api.EnumType
+import com.apollographql.apollo.api.EnumType
 import kotlin.Array
 import kotlin.Deprecated
 import kotlin.String
@@ -36,10 +36,10 @@ public enum class Enum(
     @Suppress("DEPRECATION")
     public val knownEntries: List<Enum>
       get() = listOf(
-        north,
-        North,
-        NORTH,
-        SOUTH)
+        Enum.north,
+        Enum.North,
+        Enum.NORTH,
+        Enum.SOUTH)
 
     /**
      * Returns all [Enum] known at compile time
@@ -50,7 +50,10 @@ public enum class Enum(
     )
     public fun knownValues(): Array<Enum> = knownEntries.toTypedArray()
 
-    public fun safeValueOf(rawValue: String): Enum = values().find { it.rawValue == rawValue } ?:
-        UNKNOWN__
+    /**
+     * Returns the [Enum] that represents the specified [rawValue].
+     * Note: unknown values of [rawValue] will return [UNKNOWN__]. You may want to update your schema instead of calling this function directly.
+     */
+    public fun safeValueOf(rawValue: String): Enum = values().find { it.rawValue == rawValue } ?: UNKNOWN__
   }
 }

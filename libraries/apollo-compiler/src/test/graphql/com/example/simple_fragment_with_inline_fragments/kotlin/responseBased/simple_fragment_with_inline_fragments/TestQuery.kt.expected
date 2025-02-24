@@ -5,13 +5,13 @@
 //
 package com.example.simple_fragment_with_inline_fragments
 
-import com.apollographql.apollo3.annotations.ApolloAdaptableWith
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Query
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.annotations.ApolloAdaptableWith
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Query
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.simple_fragment_with_inline_fragments.adapter.TestQuery_ResponseAdapter
 import com.example.simple_fragment_with_inline_fragments.fragment.HeroDetails
 import com.example.simple_fragment_with_inline_fragments.selections.TestQuerySelections
@@ -25,8 +25,6 @@ import kotlin.collections.List
 import com.example.simple_fragment_with_inline_fragments.type.Query as CompiledQuery
 
 public class TestQuery() : Query<TestQuery.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -98,7 +96,8 @@ public class TestQuery() : Query<TestQuery.Data> {
          * Height in the preferred unit, default is meters
          */
         override val height: Double?,
-      ) : Friend, HeroDetails.HumanFriend
+      ) : Friend,
+          HeroDetails.HumanFriend
 
       public data class DroidFriend(
         override val __typename: String,
@@ -110,7 +109,8 @@ public class TestQuery() : Query<TestQuery.Data> {
          * This droid's primary function
          */
         override val primaryFunction: String?,
-      ) : Friend, HeroDetails.DroidFriend
+      ) : Friend,
+          HeroDetails.DroidFriend
 
       public data class OtherFriend(
         override val __typename: String,
@@ -118,7 +118,8 @@ public class TestQuery() : Query<TestQuery.Data> {
          * The name of the character
          */
         override val name: String,
-      ) : Friend, HeroDetails.Friend
+      ) : Friend,
+          HeroDetails.Friend
 
       public companion object {
         @Suppress("USELESS_CAST")
@@ -159,8 +160,7 @@ public class TestQuery() : Query<TestQuery.Data> {
      * ```
      */
     public val OPERATION_DOCUMENT: String
-      get() =
-          "query TestQuery { hero { __typename ...HeroDetails } }  fragment HeroDetails on Character { name friends { __typename name ... on Human { height } ... on Droid { primaryFunction } } }"
+      get() = "query TestQuery { hero { __typename ...HeroDetails } }  fragment HeroDetails on Character { name friends { __typename name ... on Human { height } ... on Droid { primaryFunction } } }"
 
     public const val OPERATION_NAME: String = "TestQuery"
   }

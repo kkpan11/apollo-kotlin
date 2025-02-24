@@ -5,14 +5,15 @@
 //
 package com.example.nested_named_fragments.selections;
 
-import com.apollographql.apollo3.api.CompiledArgument;
-import com.apollographql.apollo3.api.CompiledField;
-import com.apollographql.apollo3.api.CompiledFragment;
-import com.apollographql.apollo3.api.CompiledListType;
-import com.apollographql.apollo3.api.CompiledNotNullType;
-import com.apollographql.apollo3.api.CompiledSelection;
-import com.example.nested_named_fragments.fragment.selections.starshipFragmentSelections;
+import com.apollographql.apollo.api.CompiledArgument;
+import com.apollographql.apollo.api.CompiledField;
+import com.apollographql.apollo.api.CompiledFragment;
+import com.apollographql.apollo.api.CompiledListType;
+import com.apollographql.apollo.api.CompiledNotNullType;
+import com.apollographql.apollo.api.CompiledSelection;
+import com.example.nested_named_fragments.fragment.selections.StarshipFragmentSelections;
 import com.example.nested_named_fragments.type.GraphQLString;
+import com.example.nested_named_fragments.type.Root;
 import com.example.nested_named_fragments.type.Starship;
 import com.example.nested_named_fragments.type.StarshipsConnection;
 import com.example.nested_named_fragments.type.StarshipsEdge;
@@ -22,7 +23,7 @@ import java.util.List;
 public class AllStarshipsSelections {
   private static List<CompiledSelection> __node = Arrays.asList(
     new CompiledField.Builder("__typename", new CompiledNotNullType(GraphQLString.type)).build(),
-    new CompiledFragment.Builder("Starship", Arrays.asList("Starship")).selections(starshipFragmentSelections.__root).build()
+    new CompiledFragment.Builder("Starship", Arrays.asList("Starship")).selections(StarshipFragmentSelections.__root).build()
   );
 
   private static List<CompiledSelection> __edges = Arrays.asList(
@@ -34,6 +35,6 @@ public class AllStarshipsSelections {
   );
 
   public static List<CompiledSelection> __root = Arrays.asList(
-    new CompiledField.Builder("allStarships", StarshipsConnection.type).arguments(Arrays.asList(new CompiledArgument.Builder("after").build(), new CompiledArgument.Builder("before").build(), new CompiledArgument.Builder("first").value(7).build(), new CompiledArgument.Builder("last").build())).selections(__allStarships).build()
+    new CompiledField.Builder("allStarships", StarshipsConnection.type).arguments(Arrays.asList(new CompiledArgument.Builder(Root.__allStarships_first).value(7).build())).selections(__allStarships).build()
   );
 }

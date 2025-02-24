@@ -8,13 +8,10 @@ plugins {
 }
 
 apolloLibrary(
-  javaModuleName = "com.apollographql.apollo3.ast"
+    namespace = "com.apollographql.apollo.ast",
 )
 
 kotlin {
-  jvm {
-    withJava()
-  }
   sourceSets {
     getByName("commonMain") {
       dependencies {
@@ -32,6 +29,7 @@ kotlin {
     getByName("jvmTest") {
       dependencies {
         implementation(libs.google.testparameterinjector)
+        implementation(libs.kotlin.test)
       }
     }
   }

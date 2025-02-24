@@ -1,11 +1,11 @@
+
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
-import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrLink
 import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
-import org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink
 
 internal val allAppleTargets = setOf(
     "macosX64",
@@ -74,6 +74,12 @@ fun Project.configureMpp(
         }
       }
     }
+    if (withWasm) {
+      @OptIn(ExperimentalWasmDsl::class)
+      wasmJs {
+        nodejs()
+      }
+    }
 
     if (enableLinux && withLinux) {
       linuxX64("linux")
@@ -102,14 +108,8 @@ fun Project.configureMpp(
         }
       }
     }
-    if (withWasm) {
-      wasmJs {
-        nodejs()
-      }
-    }
 
     configureSourceSetGraph()
-    addTestDependencies()
   }
 }
 
@@ -117,52 +117,58 @@ fun Project.configureMpp(
  * Current Graph is something like so:
  *
  * ```mermaid
- * graph TB
- * commonMain --> concurrentMain
- * commonMain --> linuxMain
- * commonMain --> jsMain
- * concurrentMain --> jvmMain
- * concurrentMain --> appleMain
- * appleMain --> macosX64
- * appleMain --> macosArm64
- * appleMain --> iosArm64
- * appleMain --> iosX64
- * appleMain --> iosSimulatorArm64
- * appleMain --> watchosArm32
- * appleMain --> watchosArm64
- * appleMain --> watchosSimulatorArm64
- * appleMain --> tvosArm64
- * appleMain --> tvosX64
- * appleMain --> tvosSimulatorArm64
- *
- * classDef kotlinPurple fill:#A97BFF,stroke:#333,stroke-width:2px,color:#333
- * classDef javaOrange fill:#b07289,stroke:#333,stroke-width:2px,color:#333
- * classDef gray fill:#AAA,stroke:#333,stroke-width:2px,color:#333
- * class jvmJavaCodeGen,macOsArm64Test,jvmTest,jsTest kotlinPurple
- * class commonTest javaOrange
+ * graph
+ * common --> fileSystem
+ * fileSystem --> concurrent
+ * fileSystem --> jsCommon
+ * concurrent --> native
+ * concurrent --> jvmCommon
+ * jsCommon --> js
+ * jsCommon --> wasmJs
+ * jvmCommon --> jvm
+ * jvmCommon --> android
+ * native --> linux
+ * native --> apple
+ * apple --> macosX64
+ * apple --> macosArm64
+ * apple --> iosArm64
+ * apple --> iosX64
+ * apple --> iosSimulatorArm64
+ * apple --> watchosArm32
+ * apple --> watchosArm64
+ * apple --> watchosSimulatorArm64
+ * apple --> tvosArm64
+ * apple --> tvosX64
+ * apple --> tvosSimulatorArm64
  * ```
  */
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 private fun KotlinMultiplatformExtension.configureSourceSetGraph() {
   applyDefaultHierarchyTemplate {
     group("common") {
-      group("concurrent") {
-        group("native") {
-          group("apple")
+      group("filesystem") {
+        group("concurrent") {
+          group("native") {
+            group("apple")
+          }
+          group("jvmCommon") {
+            withJvm()
+            withAndroidTarget()
+          }
         }
-        withJvm()
+        group("jsCommon") {
+          group("js") {
+            withJs()
+          }
+          group("wasmJs") {
+            withWasmJs()
+          }
+        }
       }
     }
   }
 }
 
-private fun KotlinMultiplatformExtension.addTestDependencies() {
-  sourceSets.getByName("commonTest") {
-    dependencies {
-      implementation(kotlin("test"))
-    }
-  }
-}
 
 /**
  * Registers a new testRun that substitutes the Kotlin models by the Java models.
