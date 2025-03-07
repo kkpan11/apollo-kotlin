@@ -5,19 +5,19 @@
 //
 package com.example.target_name
 
-import com.apollographql.apollo3.annotations.ApolloAdaptableWith
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Optional
-import com.apollographql.apollo3.api.Query
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.annotations.ApolloAdaptableWith
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Optional
+import com.apollographql.apollo.api.Query
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.target_name.adapter.TestQuery_ResponseAdapter
 import com.example.target_name.adapter.TestQuery_VariablesAdapter
 import com.example.target_name.selections.TestQuerySelections
-import com.example.target_name.type.renamedEnum
-import com.example.target_name.type.renamedInput
+import com.example.target_name.type.RenamedEnum
+import com.example.target_name.type.RenamedInput
 import kotlin.Any
 import kotlin.Boolean
 import kotlin.String
@@ -25,12 +25,10 @@ import kotlin.Suppress
 import com.example.target_name.type.Query as CompiledQuery
 
 public data class TestQuery(
-  public val input: Optional<renamedInput?> = Optional.Absent,
+  public val input: Optional<RenamedInput?> = Optional.Absent,
   public val scalar: Optional<Any?> = Optional.Absent,
-  public val `enum`: Optional<renamedEnum?> = Optional.Absent,
+  public val `enum`: Optional<RenamedEnum?> = Optional.Absent,
 ) : Query<TestQuery.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun id(): String = OPERATION_ID
 
   override fun document(): String = OPERATION_DOCUMENT
@@ -42,8 +40,7 @@ public data class TestQuery(
     customScalarAdapters: CustomScalarAdapters,
     withDefaultValues: Boolean,
   ) {
-    TestQuery_VariablesAdapter.serializeVariables(writer, this, customScalarAdapters,
-        withDefaultValues)
+    TestQuery_VariablesAdapter.serializeVariables(writer, this, customScalarAdapters, withDefaultValues)
   }
 
   override fun adapter(): Adapter<Data> = TestQuery_ResponseAdapter.Data.obj()
@@ -61,7 +58,7 @@ public data class TestQuery(
     public val `interface`: Interface?,
     public val union: Union?,
     public val scalar: Any?,
-    public val `enum`: renamedEnum?,
+    public val `enum`: RenamedEnum?,
   ) : Query.Data {
     public data class Object(
       public val `field`: String?,
@@ -118,8 +115,7 @@ public data class TestQuery(
      * ```
      */
     public val OPERATION_DOCUMENT: String
-      get() =
-          "query TestQuery(${'$'}input: ReservedInput, ${'$'}scalar: ReservedScalar, ${'$'}enum: ReservedEnum) { object(input: ${'$'}input) { field } interface { field } union { __typename ... on ReservedObject { field } } scalar(scalar: ${'$'}scalar) enum(enum: ${'$'}enum) }"
+      get() = "query TestQuery(${'$'}input: ReservedInput, ${'$'}scalar: ReservedScalar, ${'$'}enum: ReservedEnum) { object(input: ${'$'}input) { field } interface { field } union { __typename ... on ReservedObject { field } } scalar(scalar: ${'$'}scalar) enum(enum: ${'$'}enum) }"
 
     public const val OPERATION_NAME: String = "TestQuery"
   }

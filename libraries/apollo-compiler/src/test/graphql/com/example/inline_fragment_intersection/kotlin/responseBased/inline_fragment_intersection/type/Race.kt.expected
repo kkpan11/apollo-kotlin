@@ -5,7 +5,7 @@
 //
 package com.example.inline_fragment_intersection.type
 
-import com.apollographql.apollo3.api.EnumType
+import com.apollographql.apollo.api.EnumType
 import kotlin.Array
 import kotlin.Deprecated
 import kotlin.String
@@ -31,9 +31,9 @@ public enum class Race(
      */
     public val knownEntries: List<Race>
       get() = listOf(
-        WOOKIE,
-        GUMGAN,
-        EWOK)
+        Race.WOOKIE,
+        Race.GUMGAN,
+        Race.EWOK)
 
     /**
      * Returns all [Race] known at compile time
@@ -44,7 +44,10 @@ public enum class Race(
     )
     public fun knownValues(): Array<Race> = knownEntries.toTypedArray()
 
-    public fun safeValueOf(rawValue: String): Race = values().find { it.rawValue == rawValue } ?:
-        UNKNOWN__
+    /**
+     * Returns the [Race] that represents the specified [rawValue].
+     * Note: unknown values of [rawValue] will return [UNKNOWN__]. You may want to update your schema instead of calling this function directly.
+     */
+    public fun safeValueOf(rawValue: String): Race = values().find { it.rawValue == rawValue } ?: UNKNOWN__
   }
 }

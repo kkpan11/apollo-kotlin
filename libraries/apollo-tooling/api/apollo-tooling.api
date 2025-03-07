@@ -1,21 +1,18 @@
-public final class com/apollographql/apollo3/tooling/CannotModifyOperationBody : com/apollographql/apollo3/tooling/PublishOperationsResult {
+public final class com/apollographql/apollo/tooling/CannotModifyOperationBody : com/apollographql/apollo/tooling/PublishOperationsResult {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun getMessage ()Ljava/lang/String;
 }
 
-public final class com/apollographql/apollo3/tooling/GraphNotFound : com/apollographql/apollo3/tooling/PublishOperationsResult {
-	public static final field INSTANCE Lcom/apollographql/apollo3/tooling/GraphNotFound;
+public final class com/apollographql/apollo/tooling/GraphNotFound : com/apollographql/apollo/tooling/PublishOperationsResult {
+	public static final field INSTANCE Lcom/apollographql/apollo/tooling/GraphNotFound;
 }
 
-public final class com/apollographql/apollo3/tooling/PermissionError : com/apollographql/apollo3/tooling/PublishOperationsResult {
+public final class com/apollographql/apollo/tooling/PermissionError : com/apollographql/apollo/tooling/PublishOperationsResult {
 	public fun <init> (Ljava/lang/String;)V
 	public final fun getMessage ()Ljava/lang/String;
 }
 
-public final class com/apollographql/apollo3/tooling/PersistedQueriesUploaderKt {
-}
-
-public final class com/apollographql/apollo3/tooling/PersistedQuery {
+public final class com/apollographql/apollo/tooling/PersistedQuery {
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public final fun getBody ()Ljava/lang/String;
 	public final fun getId ()Ljava/lang/String;
@@ -23,10 +20,10 @@ public final class com/apollographql/apollo3/tooling/PersistedQuery {
 	public final fun getOperationType ()Ljava/lang/String;
 }
 
-public abstract interface class com/apollographql/apollo3/tooling/PublishOperationsResult {
+public abstract interface class com/apollographql/apollo/tooling/PublishOperationsResult {
 }
 
-public final class com/apollographql/apollo3/tooling/PublishOperationsSuccess : com/apollographql/apollo3/tooling/PublishOperationsResult {
+public final class com/apollographql/apollo/tooling/PublishOperationsSuccess : com/apollographql/apollo/tooling/PublishOperationsResult {
 	public fun <init> (IIIIILjava/lang/String;I)V
 	public final fun getAdded ()I
 	public final fun getIdentical ()I
@@ -37,7 +34,26 @@ public final class com/apollographql/apollo3/tooling/PublishOperationsSuccess : 
 	public final fun getUpdated ()I
 }
 
-public final class com/apollographql/apollo3/tooling/SerializationKt {
+public final class com/apollographql/apollo/tooling/SerializationKt {
 	public static final fun toJsonElement (Ljava/lang/Object;)Lkotlinx/serialization/json/JsonElement;
+}
+
+public final class com/apollographql/apollo/tooling/Telemetry {
+	public static final field INSTANCE Lcom/apollographql/apollo/tooling/Telemetry;
+	public final fun trackApolloKotlinUsage (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun trackApolloKotlinUsage$default (Lcom/apollographql/apollo/tooling/Telemetry;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class com/apollographql/apollo/tooling/Telemetry$TelemetryEvent {
+	public fun <init> (Ljava/lang/String;Ljava/time/Instant;Ljava/lang/Object;)V
+	public final fun getDate ()Ljava/time/Instant;
+	public final fun getPayload ()Ljava/lang/Object;
+	public final fun getType ()Ljava/lang/String;
+}
+
+public final class com/apollographql/apollo/tooling/Telemetry$TelemetryProperty {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun getPayload ()Ljava/lang/Object;
+	public final fun getType ()Ljava/lang/String;
 }
 

@@ -3,21 +3,21 @@ package test
 import IdCacheKeyGenerator
 import IdCacheResolver
 import assertEquals2
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.cache.normalized.ApolloStore
-import com.apollographql.apollo3.cache.normalized.FetchPolicy
-import com.apollographql.apollo3.cache.normalized.api.CacheKey
-import com.apollographql.apollo3.cache.normalized.api.MemoryCacheFactory
-import com.apollographql.apollo3.cache.normalized.fetchPolicy
-import com.apollographql.apollo3.cache.normalized.isFromCache
-import com.apollographql.apollo3.cache.normalized.store
-import com.apollographql.apollo3.exception.CacheMissException
-import com.apollographql.apollo3.integration.normalizer.CharacterNameByIdQuery
-import com.apollographql.apollo3.integration.normalizer.HeroAndFriendsNamesWithIDsQuery
-import com.apollographql.apollo3.integration.normalizer.type.Episode
-import com.apollographql.apollo3.testing.QueueTestNetworkTransport
-import com.apollographql.apollo3.testing.enqueueTestResponse
-import com.apollographql.apollo3.testing.internal.runTest
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.cache.normalized.ApolloStore
+import com.apollographql.apollo.cache.normalized.FetchPolicy
+import com.apollographql.apollo.cache.normalized.api.CacheKey
+import com.apollographql.apollo.cache.normalized.api.MemoryCacheFactory
+import com.apollographql.apollo.cache.normalized.fetchPolicy
+import com.apollographql.apollo.cache.normalized.isFromCache
+import com.apollographql.apollo.cache.normalized.store
+import com.apollographql.apollo.exception.CacheMissException
+import com.apollographql.apollo.integration.normalizer.CharacterNameByIdQuery
+import com.apollographql.apollo.integration.normalizer.HeroAndFriendsNamesWithIDsQuery
+import com.apollographql.apollo.integration.normalizer.type.Episode
+import com.apollographql.apollo.testing.QueueTestNetworkTransport
+import com.apollographql.apollo.testing.enqueueTestResponse
+import com.apollographql.apollo.testing.internal.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -120,6 +120,17 @@ class StoreTest {
     assertFriendIsNotCached("1003")
   }
 
+  @Test
+  fun testNewBuilderNewStore() = runTest(before = { setUp() }) {
+    storeAllFriends()
+    assertFriendIsCached("1000", "Luke Skywalker")
+
+    val newStore = ApolloStore(MemoryCacheFactory())
+    val newClient = apolloClient.newBuilder().store(newStore).build()
+
+    assertFriendIsNotCached("1000", newClient)
+  }
+
   private suspend fun storeAllFriends() {
     val query = HeroAndFriendsNamesWithIDsQuery(Episode.NEWHOPE)
     apolloClient.enqueueTestResponse(query, HeroAndFriendsNamesWithIDsQuery.Data(
@@ -158,9 +169,12 @@ class StoreTest {
     assertEquals2(characterResponse.data?.character?.name, name)
   }
 
-  private suspend fun assertFriendIsNotCached(id: String) {
+  private suspend fun assertFriendIsNotCached(
+      id: String,
+      apolloClientToUse: ApolloClient = apolloClient,
+  ) {
     assertIs<CacheMissException>(
-        apolloClient.query(CharacterNameByIdQuery(id))
+        apolloClientToUse.query(CharacterNameByIdQuery(id))
             .fetchPolicy(FetchPolicy.CacheOnly)
             .execute()
             .exception

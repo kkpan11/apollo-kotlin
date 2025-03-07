@@ -5,14 +5,14 @@
 //
 package com.example.input_object_oneof.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
 import com.example.input_object_oneof.FindUserQuery
 import kotlin.String
 import kotlin.collections.List
@@ -21,8 +21,7 @@ public object FindUserQuery_ResponseAdapter {
   public object Data : Adapter<FindUserQuery.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("findUser")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        FindUserQuery.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): FindUserQuery.Data {
       var _findUser: FindUserQuery.Data.FindUser? = null
 
       while (true) {
@@ -49,8 +48,7 @@ public object FindUserQuery_ResponseAdapter {
     private object FindUser : Adapter<FindUserQuery.Data.FindUser> {
       public val RESPONSE_NAMES: List<String> = listOf("id")
 
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          FindUserQuery.Data.FindUser {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): FindUserQuery.Data.FindUser {
         var _id: String? = null
 
         while (true) {

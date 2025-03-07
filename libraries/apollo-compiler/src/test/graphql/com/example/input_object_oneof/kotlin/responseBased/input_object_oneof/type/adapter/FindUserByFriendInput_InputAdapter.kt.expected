@@ -5,17 +5,16 @@
 //
 package com.example.input_object_oneof.type.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
 import com.example.input_object_oneof.type.FindUserByFriendInput
 import kotlin.IllegalStateException
 
 public object FindUserByFriendInput_InputAdapter : Adapter<FindUserByFriendInput> {
-  override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-      FindUserByFriendInput = throw IllegalStateException("Input type used in output position")
+  override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): FindUserByFriendInput = throw IllegalStateException("Input type used in output position")
 
   override fun toJson(
     writer: JsonWriter,

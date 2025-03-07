@@ -1,16 +1,22 @@
 ---
-title: Data builders (experimental)
+title: Data builders
 ---
 
-> ⚠️ **Data builders are experimental and subject to change.** If you have feedback on them, please let us know via [GitHub issues](https://github.com/apollographql/apollo-android/issues/new?assignees=&labels=Type%3A+Bug&template=bug_report.md&title=[Data%20Builders]) or in the [Kotlin Slack community](https://slack.kotl.in/).
+<ExperimentalFeature>
 
-Apollo Kotlin generates models for your operations and parsers that create instances of these models from your network responses. Sometimes though, during tests or in other occasions, it is useful to instantiate models manually with known values. Doing so is not as straightforward as it may seem, especially when fragments are used. Creating `operationBased` models requires instantiating every fragment as well as choosing an appropriate `__typename` for each composite type. Data builders make this easier by providing builders that match the structure of the Json document.
+**Data builders are currently [experimental](https://www.apollographql.com/docs/resources/product-launch-stages/#experimental-features) in Apollo Kotlin.** If you have feedback on them, please let us know via [GitHub issues](https://github.com/apollographql/apollo-kotlin/issues/new?assignees=&labels=Type%3A+Bug&template=bug_report.md) or in the [Kotlin Slack community](https://slack.kotl.in/).
 
-__Note: previous versions of Apollo Kotlin used test builders. Data builders are a simpler version of test builders that also plays nicer with custom scalars. If you're looking for the test builders documentation, it's still available [here](./test-builders).__
+</ExperimentalFeature>
+
+Apollo Kotlin generates models for your operations and parsers that create instances of these models from your network responses. Sometimes though, during tests or in other occasions, it is useful to instantiate models manually with known values.
+
+Doing so is not as straightforward as it may seem, especially when fragments are used. Creating `operationBased` models requires instantiating every fragment as well as choosing an appropriate `__typename` for each composite type.
+
+Data builders make this easier by providing builders that match the structure of the Json document.
 
 ## Enabling data builders
 
-To enable data, set the `generateDataBuilders` option to `true`:
+To enable data builders, set the `generateDataBuilders` option to `true`:
 
 ```kotlin title="build.gradle[.kts]"
 apollo {
@@ -123,7 +129,7 @@ val data = GetHeroes.Data {
 
 ## `@skip` and `@include` directives
 
-By default, the data builders match the types in your schema. If a field is non-null you will either have to provide a value or let the default resolver provide one. This is an issue for `@skip` and `@include` directives where a field might be absent even if it is non-nullable. To account for this case, use the same syntax as for aliases. 
+By default, the data builders match the types in your schema. If a field is non-null you will either have to provide a value or let the default resolver provide one. This is an issue for `@skip` and `@include` directives where a field might be absent even if it is non-nullable. To account for this case, use the same syntax as for aliases and set the value to `Optional.Absent`.
 
 ```graphql
 query Skip($skip: Boolean!) {
@@ -156,7 +162,7 @@ class MyFakeResolver : FakeResolver {
   
   override fun resolveLeaf(context: FakeResolverContext): Any {
     return when (context.mergedField.type.leafType().name) {
-      "Int" -> -1 // Always use -1 for Ints
+      "Int" -> -1 // Always use -1 for Int
       else -> delegate.resolveLeaf(context) 
     }
   }
@@ -187,5 +193,28 @@ fun test() {
 
   // Unspecified Int field is -1
   assertEquals(-1, data.hero.age)
+}
+```
+
+## Using fragments 
+
+Because fragments may be defined on interfaces and unions, you need to explicit the concrete type you want to model. For an example, if you have an `Animal` interface, create a `Lion` fragment data using the following:
+
+```kotlin
+val data = AnimalDetailsImpl.Data(Lion) {
+  // you can access roar here
+  roar = "Grrrrr"
+}
+```
+
+Sometimes, you may want to test new types defined in your server that are not known to the client yet. To do so, use the abstract type (`Animal` here) as first parameter for the `Data()` constructor function. 
+
+In those cases, you need to specify the `__typename` of the returned object type explicitly: 
+
+```kotlin
+val data = AnimalDetailsImpl.Data(Animal) {
+  // the client doesn't know about this type yet, and you need to specify it explicitly
+  __typename = "Brontaroc"
+  species = "alien"
 }
 ```

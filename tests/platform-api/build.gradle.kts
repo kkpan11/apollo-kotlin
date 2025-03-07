@@ -1,9 +1,9 @@
 import com.android.build.gradle.internal.tasks.factory.dependsOn
-import com.apollographql.apollo3.gradle.internal.ApolloPushSchemaTask
+import com.apollographql.apollo.gradle.internal.ApolloPushSchemaTask
 
 plugins {
   id("org.jetbrains.kotlin.jvm")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -13,6 +13,7 @@ dependencies {
   implementation(libs.apollo.tooling)
   testImplementation(libs.kotlin.test)
   testImplementation(libs.apollo.testingsupport)
+  testImplementation(libs.apollo.mockserver)
 }
 
 val apiKey = System.getenv("PLATFORM_API_TESTS_KEY")

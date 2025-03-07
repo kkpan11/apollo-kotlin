@@ -5,8 +5,8 @@
 //
 package com.example.suppressed_warnings.type
 
-import com.apollographql.apollo3.annotations.ApolloRequiresOptIn
-import com.apollographql.apollo3.api.EnumType
+import com.apollographql.apollo.annotations.ApolloRequiresOptIn
+import com.apollographql.apollo.api.EnumType
 import kotlin.Array
 import kotlin.Deprecated
 import kotlin.OptIn
@@ -38,9 +38,9 @@ public enum class Direction(
     @OptIn(ApolloRequiresOptIn::class)
     public val knownEntries: List<Direction>
       get() = listOf(
-        South,
-        North,
-        East)
+        Direction.South,
+        Direction.North,
+        Direction.East)
 
     /**
      * Returns all [Direction] known at compile time
@@ -51,7 +51,10 @@ public enum class Direction(
     )
     public fun knownValues(): Array<Direction> = knownEntries.toTypedArray()
 
-    public fun safeValueOf(rawValue: String): Direction = values().find { it.rawValue == rawValue }
-        ?: UNKNOWN__
+    /**
+     * Returns the [Direction] that represents the specified [rawValue].
+     * Note: unknown values of [rawValue] will return [UNKNOWN__]. You may want to update your schema instead of calling this function directly.
+     */
+    public fun safeValueOf(rawValue: String): Direction = values().find { it.rawValue == rawValue } ?: UNKNOWN__
   }
 }

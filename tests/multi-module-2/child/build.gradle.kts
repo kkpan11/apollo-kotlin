@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.jvm")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -14,7 +14,11 @@ dependencies {
 apollo {
   service("multimodule2") {
     packageName.set("multimodule2.child")
+    generateApolloMetadata.set(true)
     flattenModels.set(false)
-    dependsOn(project(":multi-module-2-root"))
   }
+}
+
+dependencies {
+  add("apolloMultimodule2", project(":multi-module-2-root"))
 }

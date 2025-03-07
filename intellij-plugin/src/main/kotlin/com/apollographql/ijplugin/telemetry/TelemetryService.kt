@@ -1,8 +1,11 @@
 package com.apollographql.ijplugin.telemetry
 
-import com.apollographql.apollo3.gradle.api.ApolloGradleToolingModel
+import com.apollographql.apollo.gradle.api.ApolloGradleToolingModel
 import com.apollographql.ijplugin.ApolloBundle
 import com.apollographql.ijplugin.icons.ApolloIcons
+import com.apollographql.ijplugin.project.ApolloProjectListener
+import com.apollographql.ijplugin.project.ApolloProjectService.ApolloVersion
+import com.apollographql.ijplugin.project.apolloProjectService
 import com.apollographql.ijplugin.settings.AppSettingsListener
 import com.apollographql.ijplugin.settings.AppSettingsState
 import com.apollographql.ijplugin.settings.appSettingsState
@@ -60,7 +63,6 @@ import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ApplicationNamesInfo
 import com.intellij.openapi.application.ex.ApplicationInfoEx
 import com.intellij.openapi.components.Service
@@ -68,12 +70,12 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.profile.codeInspection.ProjectInspectionProfileManager
+import com.intellij.util.application
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
-
 
 private const val DATA_PRIVACY_URL = "https://www.apollographql.com/docs/graphos/data-privacy/"
 
@@ -97,6 +99,7 @@ class TelemetryService(
   init {
     logd("project=${project.name}")
     startObserveSettings()
+    startObserveApolloProject()
 
     maybeShowTelemetryOptOutDialog()
     scheduleSendTelemetry()
@@ -104,13 +107,28 @@ class TelemetryService(
 
   private fun startObserveSettings() {
     logd()
-    ApplicationManager.getApplication().messageBus.connect(this).subscribe(AppSettingsListener.TOPIC, object : AppSettingsListener {
+    application.messageBus.connect(this).subscribe(AppSettingsListener.TOPIC, object : AppSettingsListener {
       var telemetryEnabled = appSettingsState.telemetryEnabled
       override fun settingsChanged(appSettingsState: AppSettingsState) {
         val telemetryEnabledChanged = telemetryEnabled != appSettingsState.telemetryEnabled
         telemetryEnabled = appSettingsState.telemetryEnabled
         logd("telemetryEnabledChanged=$telemetryEnabledChanged")
         if (telemetryEnabledChanged) {
+          scheduleSendTelemetry()
+        }
+      }
+    })
+  }
+
+  private fun startObserveApolloProject() {
+    logd()
+    project.messageBus.connect(this).subscribe(ApolloProjectListener.TOPIC, object : ApolloProjectListener {
+      var apolloVersion = project.apolloProjectService.apolloVersion
+      override fun apolloProjectChanged(apolloVersion: ApolloVersion) {
+        val apolloVersionChanged = this.apolloVersion != apolloVersion
+        this.apolloVersion = apolloVersion
+        logd("apolloVersionChanged=$apolloVersionChanged")
+        if (apolloVersionChanged) {
           scheduleSendTelemetry()
         }
       }
@@ -155,9 +173,10 @@ class TelemetryService(
   }
 
   private fun scheduleSendTelemetry() {
-    logd("telemetryEnabled=${appSettingsState.telemetryEnabled}")
+    logd("telemetryEnabled=${appSettingsState.telemetryEnabled} apolloVersion=${project.apolloProjectService.apolloVersion}")
     sendTelemetryFuture?.cancel(true)
     if (!appSettingsState.telemetryEnabled) return
+    if (project.apolloProjectService.apolloVersion == ApolloVersion.NONE) return
     sendTelemetryFuture = executor.scheduleAtFixedRate(::sendTelemetry, SEND_PERIOD_MINUTES, SEND_PERIOD_MINUTES, TimeUnit.MINUTES)
   }
 

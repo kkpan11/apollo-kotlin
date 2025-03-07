@@ -5,13 +5,13 @@
 //
 package com.example.fragment_used_twice
 
-import com.apollographql.apollo3.annotations.ApolloAdaptableWith
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Query
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.annotations.ApolloAdaptableWith
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Query
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.fragment_used_twice.adapter.TestQuery_ResponseAdapter
 import com.example.fragment_used_twice.fragment.CharacterHumanDetails
 import com.example.fragment_used_twice.fragment.HeroDetails
@@ -25,8 +25,6 @@ import kotlin.Suppress
 import com.example.fragment_used_twice.type.Query as CompiledQuery
 
 public class TestQuery() : Query<TestQuery.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -94,7 +92,9 @@ public class TestQuery() : Query<TestQuery.Data> {
        * The date character was born.
        */
       override val birthDate: Any,
-    ) : Hero, HeroDetails, CharacterHumanDetails
+    ) : Hero,
+        HeroDetails,
+        CharacterHumanDetails
 
     public data class OtherHero(
       override val __typename: String,
@@ -106,7 +106,8 @@ public class TestQuery() : Query<TestQuery.Data> {
        * The date character was born.
        */
       override val birthDate: Any,
-    ) : Hero, HeroDetails
+    ) : Hero,
+        HeroDetails
   }
 
   public companion object {
@@ -145,8 +146,7 @@ public class TestQuery() : Query<TestQuery.Data> {
      * ```
      */
     public val OPERATION_DOCUMENT: String
-      get() =
-          "query TestQuery { hero { __typename ...HeroDetails ...HumanDetails } }  fragment CharacterDetails on Character { name birthDate }  fragment HeroDetails on Character { __typename name ...CharacterDetails }  fragment HumanDetails on Human { __typename name ...CharacterDetails }"
+      get() = "query TestQuery { hero { __typename ...HeroDetails ...HumanDetails } }  fragment CharacterDetails on Character { name birthDate }  fragment HeroDetails on Character { __typename name ...CharacterDetails }  fragment HumanDetails on Human { __typename name ...CharacterDetails }"
 
     public const val OPERATION_NAME: String = "TestQuery"
   }

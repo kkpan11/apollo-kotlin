@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest(
@@ -19,6 +19,7 @@ kotlin {
     findByName("commonTest")?.apply {
       dependencies {
         implementation(libs.apollo.testingsupport)
+        implementation(libs.apollo.mockserver)
       }
     }
   }

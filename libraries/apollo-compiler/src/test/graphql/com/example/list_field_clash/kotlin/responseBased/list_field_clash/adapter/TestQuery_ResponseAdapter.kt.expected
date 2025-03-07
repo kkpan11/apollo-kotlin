@@ -5,14 +5,14 @@
 //
 package com.example.list_field_clash.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.NullableStringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.list
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.NullableStringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.list
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
 import com.example.list_field_clash.TestQuery
 import com.example.list_field_clash.type.adapter.AmenityCategory_ResponseAdapter
 import kotlin.String
@@ -22,8 +22,7 @@ public object TestQuery_ResponseAdapter {
   public object Data : Adapter<TestQuery.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("amenityCategories", "category")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        TestQuery.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data {
       var _amenityCategories: List<TestQuery.Data.AmenityCategory?>? = null
       var _category: com.example.list_field_clash.type.AmenityCategory? = null
 
@@ -47,19 +46,16 @@ public object TestQuery_ResponseAdapter {
       `value`: TestQuery.Data,
     ) {
       writer.name("amenityCategories")
-      AmenityCategory.obj().nullable().list().nullable().toJson(writer, customScalarAdapters,
-          value.amenityCategories)
+      AmenityCategory.obj().nullable().list().nullable().toJson(writer, customScalarAdapters, value.amenityCategories)
 
       writer.name("category")
-      AmenityCategory_ResponseAdapter.nullable().toJson(writer, customScalarAdapters,
-          value.category)
+      AmenityCategory_ResponseAdapter.nullable().toJson(writer, customScalarAdapters, value.category)
     }
 
     private object AmenityCategory : Adapter<TestQuery.Data.AmenityCategory> {
       public val RESPONSE_NAMES: List<String> = listOf("text")
 
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          TestQuery.Data.AmenityCategory {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data.AmenityCategory {
         var _text: String? = null
 
         while (true) {

@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -17,8 +17,8 @@ kotlin {
     findByName("commonTest")?.apply {
       dependencies {
         implementation(libs.apollo.normalizedcache)
-        implementation(libs.apollo.mockserver)
         implementation(libs.apollo.testingsupport)
+        implementation(libs.apollo.mockserver)
       }
     }
 
@@ -49,12 +49,12 @@ fun configureApollo(generateKotlinModels: Boolean) {
     service("base-$extra") {
       packageName.set("defer")
       this.generateKotlinModels.set(generateKotlinModels)
-      sourceFolder.set("base")
+      srcDir("src/commonMain/graphql/base")
       configureConnection(generateKotlinModels)
     }
     service("supergraph-$extra") {
       packageName.set("supergraph")
-      sourceFolder.set("supergraph")
+      srcDir("src/commonMain/graphql/supergraph")
       this.addTypename.set("ifAbstract")
       this.generateKotlinModels.set(generateKotlinModels)
       configureConnection(generateKotlinModels)
@@ -68,7 +68,7 @@ if (System.getProperty("idea.sync.active") == null) {
   configureApollo(false)
 }
 
-fun com.apollographql.apollo3.gradle.api.Service.configureConnection(generateKotlinModels: Boolean) {
+fun com.apollographql.apollo.gradle.api.Service.configureConnection(generateKotlinModels: Boolean) {
   outputDirConnection {
     if (generateKotlinModels) {
       connectToKotlinSourceSet("commonTest")

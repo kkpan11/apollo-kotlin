@@ -5,18 +5,18 @@
 //
 package com.example.root_query_inline_fragment.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.NullableDoubleAdapter
-import com.apollographql.apollo3.api.NullableStringAdapter
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.json.readTypename
-import com.apollographql.apollo3.api.list
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.NullableDoubleAdapter
+import com.apollographql.apollo.api.NullableStringAdapter
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.json.readTypename
+import com.apollographql.apollo.api.list
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
 import com.example.root_query_inline_fragment.TestQuery
 import com.example.root_query_inline_fragment.type.Episode
 import com.example.root_query_inline_fragment.type.adapter.Episode_ResponseAdapter
@@ -29,8 +29,7 @@ public object TestQuery_ResponseAdapter {
   public object Data : Adapter<TestQuery.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("__typename", "hero", "droid")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        TestQuery.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data {
       var __typename: String? = null
       var _hero: TestQuery.Data.Hero? = null
       var _droid: TestQuery.Data.Droid? = null
@@ -67,8 +66,7 @@ public object TestQuery_ResponseAdapter {
     }
 
     private object Hero : Adapter<TestQuery.Data.Hero> {
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          TestQuery.Data.Hero {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data.Hero {
         val __typename = reader.readTypename()
         return when(__typename) {
           "Human",
@@ -133,8 +131,7 @@ public object TestQuery_ResponseAdapter {
         StringAdapter.toJson(writer, customScalarAdapters, value.name)
 
         writer.name("appearsIn")
-        Episode_ResponseAdapter.nullable().list().toJson(writer, customScalarAdapters,
-            value.appearsIn)
+        Episode_ResponseAdapter.nullable().list().toJson(writer, customScalarAdapters, value.appearsIn)
 
         writer.name("height")
         NullableDoubleAdapter.toJson(writer, customScalarAdapters, value.height)
@@ -181,16 +178,14 @@ public object TestQuery_ResponseAdapter {
         StringAdapter.toJson(writer, customScalarAdapters, value.name)
 
         writer.name("appearsIn")
-        Episode_ResponseAdapter.nullable().list().toJson(writer, customScalarAdapters,
-            value.appearsIn)
+        Episode_ResponseAdapter.nullable().list().toJson(writer, customScalarAdapters, value.appearsIn)
       }
     }
 
     private object Droid : Adapter<TestQuery.Data.Droid> {
       public val RESPONSE_NAMES: List<String> = listOf("__typename", "name", "primaryFunction")
 
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          TestQuery.Data.Droid {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data.Droid {
         var __typename: String? = null
         var _name: String? = null
         var _primaryFunction: String? = null

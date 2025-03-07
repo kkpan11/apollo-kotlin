@@ -5,12 +5,18 @@
 //
 package com.example.mutation_create_review.type
 
-import com.apollographql.apollo3.api.Optional
+import com.apollographql.apollo.api.Optional
 import kotlin.Double
 import kotlin.Int
 
 /**
  * The input object sent when passing in a color
+ *
+ * @param red A description with a dollar sign: $10
+ * @param green Green color
+ * @param blue Blue color
+ * @param enumWithDefaultValue for test purpose only
+ * @param reviewRefInput Circle ref to review input
  */
 internal data class ColorInput(
   /**
