@@ -5,14 +5,14 @@
 //
 package com.example.root_query_fragment.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
 import kotlin.String
 import kotlin.collections.List
 
@@ -20,8 +20,7 @@ public object QueryFragmentImpl_ResponseAdapter {
   public object QueryFragment : Adapter<com.example.root_query_fragment.fragment.QueryFragment> {
     public val RESPONSE_NAMES: List<String> = listOf("__typename", "hero")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        com.example.root_query_fragment.fragment.QueryFragment {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): com.example.root_query_fragment.fragment.QueryFragment {
       var __typename: String? = null
       var _hero: com.example.root_query_fragment.fragment.QueryFragment.Hero? = null
 
@@ -54,8 +53,7 @@ public object QueryFragmentImpl_ResponseAdapter {
     private object Hero : Adapter<com.example.root_query_fragment.fragment.QueryFragment.Hero> {
       public val RESPONSE_NAMES: List<String> = listOf("name")
 
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          com.example.root_query_fragment.fragment.QueryFragment.Hero {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): com.example.root_query_fragment.fragment.QueryFragment.Hero {
         var _name: String? = null
 
         while (true) {

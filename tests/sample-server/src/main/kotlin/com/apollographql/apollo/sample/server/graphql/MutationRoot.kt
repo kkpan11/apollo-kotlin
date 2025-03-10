@@ -1,11 +1,10 @@
 package com.apollographql.apollo.sample.server.graphql
 
 import com.apollographql.apollo.sample.server.WebSocketRegistry
-import com.apollographql.apollo3.annotations.GraphQLObject
-import com.apollographql.apollo3.api.ExecutionContext
+import com.apollographql.apollo.api.ExecutionContext
+import com.apollographql.execution.annotation.GraphQLMutation
 
-
-@GraphQLObject(name = "Mutation")
+@GraphQLMutation
 class MutationRoot {
   fun closeAllWebSockets(executionContext: ExecutionContext): String {
     val registry = executionContext[WebSocketRegistry]

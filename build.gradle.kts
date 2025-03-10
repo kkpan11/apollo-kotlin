@@ -1,4 +1,5 @@
 import JapiCmp.configureJapiCmp
+import kotlinx.validation.ExperimentalBCVApi
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeHostTest
 
 plugins {
@@ -41,7 +42,6 @@ tasks.register("ciPublishSnapshot") {
   }
 }
 
-
 tasks.register("ciPublishRelease") {
   description = "Publishes all artifacts to OSSRH and the Gradle Plugin Portal"
 
@@ -76,18 +76,16 @@ tasks.register("ciTestsNoGradle") {
       dependsOn(tasks.matching { it.name == "test" })
     }
     dependsOn(tasks.matching { it.name == "jvmTest" })
-    dependsOn(tasks.matching { it.name == "jsIrTest" })
+    dependsOn(tasks.matching { it.name == "jsNodeTest" })
     dependsOn(tasks.withType(KotlinNativeHostTest::class.java))
     dependsOn(tasks.matching { it.name == "apiCheck" })
+    dependsOn(tasks.matching { it.name == "licensee" })
   }
 
   /**
    * Update the database schemas in CI
    */
   dependsOn(":apollo-normalized-cache-sqlite:generateCommonMainJsonDatabaseSchema")
-  dependsOn(":apollo-normalized-cache-sqlite-incubating:generateCommonMainJsonDatabaseSchema")
-  dependsOn(":apollo-normalized-cache-sqlite-incubating:generateCommonMainBlobDatabaseSchema")
-  dependsOn(":apollo-normalized-cache-sqlite-incubating:generateCommonMainBlob2DatabaseSchema")
 
   doLast {
     if (isCIBuild()) {
@@ -118,10 +116,12 @@ tasks.named("dependencyUpdates").configure {
   }
 }
 
-rootProject.configureNode()
 rootProject.configureJapiCmp()
 
 configure<kotlinx.validation.ApiValidationExtension> {
+  @OptIn(ExperimentalBCVApi::class)
+  klib.enabled = true
+
   ignoredPackages.addAll(
       listOf(
           /**
@@ -130,27 +130,15 @@ configure<kotlinx.validation.ApiValidationExtension> {
            * Gradle plugin: tasks and other classes must be public in order for Gradle to instantiate and decorate them.
            * SQLDelight generated sources are not generated as 'internal'.
            */
-          "com.apollographql.apollo3.gradle.internal",
-          "com.apollographql.apollo3.cache.normalized.sql.internal",
-          "com.apollographql.apollo3.runtime.java.internal",
-          "com.apollographql.apollo3.runtime.java.interceptor.internal",
-          "com.apollographql.apollo3.runtime.java.network.http.internal",
+          "com.apollographql.apollo.gradle.internal",
+          "com.apollographql.apollo.cache.normalized.sql.internal",
+          "com.apollographql.apollo.runtime.java.internal",
+          "com.apollographql.apollo.runtime.java.interceptor.internal",
+          "com.apollographql.apollo.runtime.java.network.http.internal",
       )
   )
-  ignoredProjects.addAll(
-      rootDir.resolve("libraries")
-          .listFiles()!!
-          .filter { it.resolve("build.gradle.kts").exists() }
-          .map { it.name }
-          .filter { it.endsWith("-incubating") }
-          + "intellij-plugin"
-  )
-  nonPublicMarkers.addAll(
-      listOf(
-          "com.apollographql.apollo3.annotations.ApolloInternal",
-          "com.apollographql.apollo3.annotations.ApolloExperimental",
-      )
-  )
+
+  ignoredProjects.add("intellij-plugin")
 }
 
 tasks.register("rmbuild") {
@@ -168,4 +156,4 @@ tasks.register("rmbuild") {
   }
 }
 
-rootSetup(ciBuild)
+apolloRoot(ciBuild)

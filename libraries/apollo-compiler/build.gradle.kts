@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -6,11 +7,12 @@ plugins {
 }
 
 apolloLibrary(
-    javaModuleName = "com.apollographql.apollo3.compiler"
+    namespace = "com.apollographql.apollo.compiler",
+    kotlinCompilerOptions = KotlinCompilerOptions(KotlinVersion.KOTLIN_1_9)
 )
 
 dependencies {
-  implementation(project(":apollo-ast"))
+  api(project(":apollo-ast"))
   api(libs.poet.kotlin) {
     // We don't use any of the KotlinPoet kotlin-reflect features
     exclude(module = "kotlin-reflect")
@@ -44,10 +46,15 @@ abstract class GeneratePluginVersion : DefaultTask() {
 
   @TaskAction
   fun taskAction() {
-    val versionFile = File(outputDir.asFile.get(), "com/apollographql/apollo3/compiler/Version.kt")
+    outputDir.asFile.get().apply {
+      deleteRecursively()
+      mkdirs()
+    }
+
+    val versionFile = File(outputDir.asFile.get(), "com/apollographql/apollo/compiler/Version.kt")
     versionFile.parentFile.mkdirs()
     versionFile.writeText("""// Generated file. Do not edit!
-package com.apollographql.apollo3.compiler
+package com.apollographql.apollo.compiler
 const val APOLLO_VERSION = "${version.get()}"
 """)
   }
@@ -64,8 +71,6 @@ configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
 }
 
 tasks.withType(KotlinCompile::class.java) {
-  // Fixes the warning below:
-  // "Task ':apollo-android:apollo-compiler:kaptGenerateStubsKotlin' uses the output of task ':apollo-android:apollo-compiler:pluginVersion', without declaring an explicit dependency"
   dependsOn(pluginVersionTaskProvider)
 }
 

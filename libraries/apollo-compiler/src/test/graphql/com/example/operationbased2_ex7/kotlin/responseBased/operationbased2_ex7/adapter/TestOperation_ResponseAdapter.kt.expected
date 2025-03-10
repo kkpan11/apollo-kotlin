@@ -5,16 +5,16 @@
 //
 package com.example.operationbased2_ex7.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.IntAdapter
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.json.readTypename
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.IntAdapter
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.json.readTypename
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
 import com.example.operationbased2_ex7.TestOperation
 import kotlin.Int
 import kotlin.String
@@ -25,8 +25,7 @@ public object TestOperation_ResponseAdapter {
   public object Data : Adapter<TestOperation.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("animal")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        TestOperation.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestOperation.Data {
       var _animal: TestOperation.Data.Animal? = null
 
       while (true) {
@@ -51,8 +50,7 @@ public object TestOperation_ResponseAdapter {
     }
 
     private object Animal : Adapter<TestOperation.Data.Animal> {
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          TestOperation.Data.Animal {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestOperation.Data.Animal {
         val __typename = reader.readTypename()
         return when(__typename) {
           "Cat",
@@ -73,21 +71,17 @@ public object TestOperation_ResponseAdapter {
         `value`: TestOperation.Data.Animal,
       ) {
         when(value) {
-          is TestOperation.Data.PetWarmBloodedAnimal -> PetWarmBloodedAnimal.toJson(writer,
-              customScalarAdapters, value)
-          is TestOperation.Data.OtherWarmBloodedAnimal -> OtherWarmBloodedAnimal.toJson(writer,
-              customScalarAdapters, value)
-          is TestOperation.Data.OtherPetAnimal -> OtherPetAnimal.toJson(writer,
-              customScalarAdapters, value)
-          is TestOperation.Data.OtherAnimal -> OtherAnimal.toJson(writer, customScalarAdapters,
-              value)
+          is TestOperation.Data.PetWarmBloodedAnimal -> PetWarmBloodedAnimal.toJson(writer, customScalarAdapters, value)
+          is TestOperation.Data.OtherWarmBloodedAnimal -> OtherWarmBloodedAnimal.toJson(writer, customScalarAdapters, value)
+          is TestOperation.Data.OtherPetAnimal -> OtherPetAnimal.toJson(writer, customScalarAdapters, value)
+          is TestOperation.Data.OtherAnimal -> OtherAnimal.toJson(writer, customScalarAdapters, value)
         }
       }
     }
 
     public object PetWarmBloodedAnimal {
-      public val RESPONSE_NAMES: List<String> = listOf("__typename", "species", "temperature",
-          "name")
+      public val RESPONSE_NAMES: List<String> =
+          listOf("__typename", "species", "temperature", "name")
 
       public fun fromJson(
         reader: JsonReader,

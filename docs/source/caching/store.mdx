@@ -8,12 +8,15 @@ The store is accessible with the `ApolloClient.apolloStore` extension:
 
 ```kotlin
 val apolloClient = ApolloClient.Builder()
-  .serverUrl("https://...")
+  .serverUrl("https://example.com/graphql")
   .normalizedCache(MemoryCacheFactory(maxSizeBytes = 10 * 1024 * 1024))
   .build()
 
 val apolloStore: ApolloStore = apolloClient.apolloStore
 ```
+
+Note that the read and write operations are synchronous and might block if the underlying cache is doing IO (such as the [SQLite cache](../caching/normalized-cache#sqlite-cache)).
+Therefore calling them from the main thread should be avoided.
 
 ## Reading operation data
 
@@ -61,7 +64,7 @@ Writing operation data is similar to reading:
 apolloClient.apolloStore.writeOperation(GetBookQuery(id = "42"), data, apolloClient.customScalarAdapters)
 ```
 
-Note how you'll need to pass the data allong the operation.
+Note how you'll need to pass the data along the operation.
 
 ## Reading and Writing fragments
 

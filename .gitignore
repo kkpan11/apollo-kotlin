@@ -7,6 +7,7 @@
 !**/.idea/icon.png
 !**/.idea/runConfigurations
 !**/.idea/scopes
+!**/.idea/dictionaries
 *.iml
 
 # Generated files
@@ -48,3 +49,4 @@ package-lock.json
 
 # IntelliJ plugin
 intellij-plugin/mockJDK
+.intellijPlatform

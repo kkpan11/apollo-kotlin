@@ -3,7 +3,7 @@ plugins {
 }
 
 apolloLibrary(
-    javaModuleName = "com.apollographql.apollo3.testing",
+    namespace = "com.apollographql.apollo.testing",
     withLinux = false,
 )
 
@@ -13,12 +13,11 @@ kotlin {
       dependencies {
         api(project(":apollo-api"))
         api(project(":apollo-runtime"))
-        api(project(":apollo-mockserver"))
         api(libs.kotlinx.coroutines)
-        implementation(libs.atomicfu.get().toString()) {
+        implementation(libs.atomicfu.library.get().toString()) {
           because("We need locks in TestNetworkTransportHandler (we don't use the gradle plugin rewrite)")
         }
-        implementation(libs.kotlinx.coroutines.test)
+        api(libs.kotlinx.coroutines.test)
       }
     }
 

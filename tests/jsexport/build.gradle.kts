@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -20,6 +20,14 @@ kotlin {
       }
     }
 
+    getByName("commonTest") {
+      dependencies {
+        implementation(libs.apollo.testingsupport)
+        implementation(libs.apollo.mockserver)
+        implementation(libs.turbine)
+      }
+    }
+
     all {
       languageSettings.optIn("kotlin.js.ExperimentalJsExport")
     }
@@ -32,6 +40,5 @@ apollo {
     jsExport.set(true)
     codegenModels.set("responseBased")
     mapScalar("Point", "Point", "PointAdapter")
-    languageVersion.set("1.5")
   }
 }

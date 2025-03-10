@@ -1,6 +1,8 @@
+import com.apollographql.apollo.annotations.ApolloExperimental
+
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest(
@@ -14,13 +16,13 @@ kotlin {
     findByName("commonMain")?.apply {
       dependencies {
         implementation(libs.apollo.runtime)
-        implementation(libs.apollo.mockserver)
       }
     }
 
     findByName("commonTest")?.apply {
       dependencies {
         implementation(libs.apollo.testingsupport)
+        implementation(libs.apollo.mockserver)
       }
     }
   }
@@ -29,6 +31,7 @@ kotlin {
 apollo {
   service("service") {
     packageName.set("ios.test")
+    @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
   }
 }

@@ -3,7 +3,7 @@ plugins {
 }
 
 apolloLibrary(
-    javaModuleName = "com.apollographql.apollo3.api"
+    namespace = "com.apollographql.apollo.api"
 )
 
 kotlin {
@@ -13,12 +13,6 @@ kotlin {
         api(libs.okio)
         api(libs.uuid)
         api(project(":apollo-annotations"))
-      }
-    }
-
-    findByName("commonTest")?.apply {
-      dependencies {
-        implementation(libs.kotlin.test.asProvider().get().toString())
       }
     }
   }

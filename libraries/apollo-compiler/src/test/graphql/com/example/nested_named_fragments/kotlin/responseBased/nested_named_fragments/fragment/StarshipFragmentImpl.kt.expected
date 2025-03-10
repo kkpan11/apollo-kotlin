@@ -5,13 +5,13 @@
 //
 package com.example.nested_named_fragments.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Fragment
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
-import com.example.nested_named_fragments.fragment.selections.starshipFragmentSelections
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Fragment
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
+import com.example.nested_named_fragments.fragment.selections.StarshipFragmentSelections
 import com.example.nested_named_fragments.type.Starship
 import kotlin.Any
 import kotlin.Boolean
@@ -21,8 +21,6 @@ import kotlin.Suppress
 import kotlin.collections.List
 
 public class StarshipFragmentImpl() : Fragment<StarshipFragmentImpl.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -41,7 +39,7 @@ public class StarshipFragmentImpl() : Fragment<StarshipFragmentImpl.Data> {
     name = "data",
     type = Starship.type
   )
-  .selections(selections = starshipFragmentSelections.__root)
+  .selections(selections = StarshipFragmentSelections.__root)
   .build()
 
   public data class Data(
@@ -54,7 +52,8 @@ public class StarshipFragmentImpl() : Fragment<StarshipFragmentImpl.Data> {
      */
     override val name: String?,
     override val pilotConnection: PilotConnection?,
-  ) : StarshipFragment, Fragment.Data {
+  ) : StarshipFragment,
+      Fragment.Data {
     public data class PilotConnection(
       /**
        * A list of edges.
@@ -79,14 +78,16 @@ public class StarshipFragmentImpl() : Fragment<StarshipFragmentImpl.Data> {
            * A planet that this person was born on or inhabits.
            */
           override val homeworld: Homeworld?,
-        ) : PilotFragment, StarshipFragment.PilotConnection.Edge.Node {
+        ) : PilotFragment,
+            StarshipFragment.PilotConnection.Edge.Node {
           public data class Homeworld(
             override val __typename: String,
             /**
              * The name of this planet.
              */
             override val name: String?,
-          ) : PlanetFragment, PilotFragment.Homeworld,
+          ) : PlanetFragment,
+              PilotFragment.Homeworld,
               StarshipFragment.PilotConnection.Edge.Node.Homeworld {
             public companion object {
               @Suppress("USELESS_CAST")

@@ -5,13 +5,13 @@
 //
 package com.example.named_fragment_with_variables
 
-import com.apollographql.apollo3.annotations.ApolloAdaptableWith
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Query
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.annotations.ApolloAdaptableWith
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Query
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.named_fragment_with_variables.adapter.GetUser_ResponseAdapter
 import com.example.named_fragment_with_variables.adapter.GetUser_VariablesAdapter
 import com.example.named_fragment_with_variables.fragment.QueryFragment
@@ -30,8 +30,6 @@ public data class GetUser(
   public val query: UserQuery,
   public val size: Int,
 ) : Query<GetUser.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun id(): String = OPERATION_ID
 
   override fun document(): String = OPERATION_DOCUMENT
@@ -43,8 +41,7 @@ public data class GetUser(
     customScalarAdapters: CustomScalarAdapters,
     withDefaultValues: Boolean,
   ) {
-    GetUser_VariablesAdapter.serializeVariables(writer, this, customScalarAdapters,
-        withDefaultValues)
+    GetUser_VariablesAdapter.serializeVariables(writer, this, customScalarAdapters, withDefaultValues)
   }
 
   override fun adapter(): Adapter<Data> = GetUser_ResponseAdapter.Data.obj()
@@ -60,7 +57,8 @@ public data class GetUser(
   public data class Data(
     public val __typename: String,
     override val organization: Organization?,
-  ) : QueryFragment, Query.Data {
+  ) : QueryFragment,
+      Query.Data {
     public data class Organization(
       override val id: String,
       override val user: List<User>,
@@ -70,7 +68,8 @@ public data class GetUser(
         override val firstName: String,
         override val lastName: String,
         override val avatar: String,
-      ) : UserFragment, QueryFragment.Organization.User {
+      ) : UserFragment,
+          QueryFragment.Organization.User {
         public companion object {
           @Suppress("USELESS_CAST")
           public fun User.userFragment(): UserFragment? = this as? UserFragment
@@ -116,8 +115,7 @@ public data class GetUser(
      * ```
      */
     public val OPERATION_DOCUMENT: String
-      get() =
-          "query GetUser(${'$'}organizationId: String!, ${'$'}query: UserQuery!, ${'$'}size: Int!) { __typename ...QueryFragment }  fragment UserFragment on User { firstName lastName avatar(size: ${'$'}size) }  fragment QueryFragment on Query { organization(id: ${'$'}organizationId) { id user(query: ${'$'}query) { __typename ...UserFragment } } }"
+      get() = "query GetUser(${'$'}organizationId: String!, ${'$'}query: UserQuery!, ${'$'}size: Int!) { __typename ...QueryFragment }  fragment UserFragment on User { firstName lastName avatar(size: ${'$'}size) }  fragment QueryFragment on Query { organization(id: ${'$'}organizationId) { id user(query: ${'$'}query) { __typename ...UserFragment } } }"
 
     public const val OPERATION_NAME: String = "GetUser"
   }

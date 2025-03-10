@@ -1,16 +1,16 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.composeJsonResponse
-import com.apollographql.apollo3.api.http.valueOf
-import com.apollographql.apollo3.api.json.buildJsonString
-import com.apollographql.apollo3.integration.normalizer.HeroNameQuery
-import com.apollographql.apollo3.mockserver.MockResponse
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.awaitRequest
-import com.apollographql.apollo3.network.http.HttpInfo
-import com.apollographql.apollo3.testing.enqueue
-import com.apollographql.apollo3.testing.internal.runTest
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.composeJsonResponse
+import com.apollographql.apollo.api.http.valueOf
+import com.apollographql.apollo.api.json.buildJsonString
+import com.apollographql.apollo.integration.normalizer.HeroNameQuery
+import com.apollographql.mockserver.MockResponse
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.awaitRequest
+import com.apollographql.mockserver.enqueueString
+import com.apollographql.apollo.network.http.HttpInfo
+import com.apollographql.apollo.testing.internal.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
@@ -34,7 +34,7 @@ class HTTPHeadersTest {
     val query = HeroNameQuery()
     val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
 
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
 
     val response = apolloClient.query(query).execute()
 

@@ -5,13 +5,13 @@
 //
 package com.example.not_all_combinations_are_needed.fragment;
 
-import com.apollographql.apollo3.api.Adapter;
-import com.apollographql.apollo3.api.CompiledField;
-import com.apollographql.apollo3.api.CustomScalarAdapters;
-import com.apollographql.apollo3.api.Fragment;
-import com.apollographql.apollo3.api.ObjectAdapter;
-import com.apollographql.apollo3.api.json.JsonWriter;
-import com.example.not_all_combinations_are_needed.fragment.selections.bFragmentSelections;
+import com.apollographql.apollo.api.Adapter;
+import com.apollographql.apollo.api.CompiledField;
+import com.apollographql.apollo.api.CustomScalarAdapters;
+import com.apollographql.apollo.api.Fragment;
+import com.apollographql.apollo.api.ObjectAdapter;
+import com.apollographql.apollo.api.json.JsonWriter;
+import com.example.not_all_combinations_are_needed.fragment.selections.BFragmentSelections;
 import com.example.not_all_combinations_are_needed.type.B;
 import java.io.IOException;
 import java.lang.Object;
@@ -76,12 +76,7 @@ public class BFragmentImpl implements Fragment<BFragment> {
       "data",
       B.type
     )
-    .selections(bFragmentSelections.__root)
+    .selections(BFragmentSelections.__root)
     .build();
-  }
-
-  @Override
-  public boolean getIgnoreErrors() {
-    return false;
   }
 }

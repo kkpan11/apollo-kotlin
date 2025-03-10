@@ -5,15 +5,15 @@
 //
 package com.example.operationbased2_ex8.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.IntAdapter
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.json.readTypename
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.IntAdapter
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.json.readTypename
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.obj
 import kotlin.Int
 import kotlin.String
 import kotlin.Suppress
@@ -23,8 +23,7 @@ public object AnimalFragmentImpl_ResponseAdapter {
   public object Data : Adapter<AnimalFragmentImpl.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("species", "parent")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        AnimalFragmentImpl.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): AnimalFragmentImpl.Data {
       var _species: String? = null
       var _parent: AnimalFragmentImpl.Data.Parent? = null
 
@@ -55,8 +54,7 @@ public object AnimalFragmentImpl_ResponseAdapter {
     }
 
     private object Parent : Adapter<AnimalFragmentImpl.Data.Parent> {
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          AnimalFragmentImpl.Data.Parent {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): AnimalFragmentImpl.Data.Parent {
         val __typename = reader.readTypename()
         return when(__typename) {
           "Lion",
@@ -74,12 +72,9 @@ public object AnimalFragmentImpl_ResponseAdapter {
         `value`: AnimalFragmentImpl.Data.Parent,
       ) {
         when(value) {
-          is AnimalFragmentImpl.Data.LionParent -> LionParent.toJson(writer, customScalarAdapters,
-              value)
-          is AnimalFragmentImpl.Data.CatParent -> CatParent.toJson(writer, customScalarAdapters,
-              value)
-          is AnimalFragmentImpl.Data.OtherParent -> OtherParent.toJson(writer, customScalarAdapters,
-              value)
+          is AnimalFragmentImpl.Data.LionParent -> LionParent.toJson(writer, customScalarAdapters, value)
+          is AnimalFragmentImpl.Data.CatParent -> CatParent.toJson(writer, customScalarAdapters, value)
+          is AnimalFragmentImpl.Data.OtherParent -> OtherParent.toJson(writer, customScalarAdapters, value)
         }
       }
     }
