@@ -4,7 +4,7 @@ The Apollo team welcomes contributions of all kinds, including bug reports, docu
 features.
 
 If you want to discuss the project or just say hi, stop
-by [the kotlinlang slack channel](https://app.slack.com/client/T09229ZC6/C01A6KM1SBZ)(get your
+by [the kotlinlang Slack channel](https://app.slack.com/client/T09229ZC6/C01A6KM1SBZ)(get your
 invite [here](https://slack.kotl.in/))
 
 ## Project Setup
@@ -15,18 +15,16 @@ You will need:
 * A recent version of IntelliJ IDEA community. Android Studio might work too, but we find out the experience for
   multiplatform code to be better with IntelliJ IDEA.
 * MacOS and the Xcode developer tools for iOS/MacOS targets.
-* Simulators for iOS/watchOS tests. It might work out of the box but if you get an error like this:
+* Simulators for iOS/watchOS tests.
 
-```
-> Task :libraries:apollo-normalized-cache-api:iosSimulatorArm64Test FAILED
-Invalid device: iPhone 12
-```
+## Composite builds
 
-You can create an emulator with:
+This repository contains several Gradle builds:
 
-```
-xcrun simctl create "iPhone 12" "iPhone 12"
-```
+* root build: the main libraries
+* `build-logic`: the shared Gradle logic
+* `tests`: integration tests
+* `benchmarks`: Android micro and macro benchmarks
 
 We recommend opening the `tests` folder in IntelliJ. It's a composite build that includes the main build and
 integration-tests, so it's easy to add GraphQL and test the codegen end-to-end. If you only want to do small changes,
@@ -156,16 +154,16 @@ Misc
 
 ## Workflow
 
-We love Github issues!  Before working on any new features, please open an issue so that we can agree on the direction,
+We love GitHub issues!  Before working on any new features, please open an issue so that we can agree on the direction,
 and hopefully avoid investing a lot of time on a feature that might need reworking.
 
 Small pull requests for things like typos, bugfixes, etc are always welcome.
 
 Please note that we will not accept pull requests for style changes.
 
-## API compatibility
+## API evolution
 
-Apollo Kotlin observes [semantic versioning](https://semver.org/). No breaking change should be introduced in minor or patch releases.
+Apollo Kotlin observes [semantic versioning](https://semver.org/). No breaking change should be introduced in minor or patch releases. See our [evolution policy](https://www.apollographql.com/docs/kotlin/v4/essentials/evolution) for more details.
 
 The public API is tracked thanks to the [Binary compatibility validator](https://github.com/Kotlin/binary-compatibility-validator) plugin.
 
@@ -188,26 +186,11 @@ stateDiagram-v2
     Deprecated(WARNING) --> Removed: Major release
 ```
 
-However, there are cases where an API must be removed even if it hasn't been deprecated. For instance when a high level behavior is changed and the related API is made irrelevant. 
-In this case don't remove the API yet, instead, deprecate with the `ERROR` level. This will make the build fail if the API is used, but the message can guide the developer with an explanation or recommended steps. This should only happen in a major release (source breaking change).
-
-The API can then be removed in the next major release (breaking change).
-
-```mermaid
-stateDiagram-v2
-    direction LR
-    NotDeprecated: Not deprecated
-    NotDeprecated --> Deprecated(ERROR): Major release
-    Deprecated(ERROR) --> Removed: Major release
-```
-
 ## Experimental / internal APIs
 
 Using Kotlin's (or other dependencies') experimental or internal APIs, such as the ones marked
-with `@ExperimentalCoroutinesApi` should be avoided as much as possible (exceptions can be made for native/JS targets
-only when no other option is
-available). Indeed, applications using a certain version of Apollo Kotlin could use a more up-to-date version of these
-APIs than the one used when building the library, causing crashes or other issues.
+with `@ExperimentalCoroutinesApi` should be avoided as much as possible.
+We have historically made exceptions to that rule for JS/native (`UnsafeNumber`) but no new opt-in to experimental APIs must be made.
 
 We also have the `@ApolloExperimental` annotation which can be used to mark APIs as experimental, for instance when
 feedback is wanted from the community on new APIs. This can also be used as a warning that APIs are using experimental
@@ -225,17 +208,24 @@ Here are the steps to do a new release:
 
 * `git checkout main && git pull`
 * `scripts/release.main.kts <version-name>`
-* while it compiles, prepare the changelog, open a PR to `CHANGELOG.md`
+* while it compiles, prepare the changelog, open a PR to `CHANGELOG.md` (see below)
 * wait for the CI to finish compiling
 * go to https://s01.oss.sonatype.org/, and release the artifacts manually. This step is called "close, release and drop"
   in the Sonatype ecosystem.
-* wait for it to be visible on [Maven Central](https://repo1.maven.org/maven2/com/apollographql/apollo3/) (this usually
+* wait for it to be visible on [Maven Central](https://repo1.maven.org/maven2/com/apollographql/apollo/) (this usually
   takes a few minutes). If you're on MacOS, you can
-  use [dependency-watch](https://github.com/JakeWharton/dependency-watch): `dependency-watch await 'com.apollographql.apollo3:apollo-runtime:$version' && osascript -e 'display notification "Release is ready 🚀"'`
+  use [dependency-watch](https://github.com/JakeWharton/dependency-watch): `dependency-watch await 'com.apollographql.apollo:apollo-runtime:$version' && osascript -e 'display notification "Release is ready 🚀"'`
 * merge pending documentation/tutorial updates. Make sure the tutorial compiles and runs well.
-* paste the changelog in a new release on [GitHub](https://github.com/apollographql/apollo-android/releases)
+* paste the changelog in a new release on [GitHub](https://github.com/apollographql/apollo-kotlin/releases)
 * if it's a significant release, tweet about it 🐦
 * relax 🍹
+
+### Changelog file
+* Add a section with the version, date, and a quick summary of what the release contains.
+* Optionally add a few sections to zoom in on changes you want to highlight.
+* No need to highlight deprecations, as warnings in the code are enough.
+* Mention and thank external contributors if any.
+* Add an "All changes" section that should list all commits since last release (can use `git log --pretty=oneline <previous-tag>..main`). Commits on the documentation can be omitted.
 
 ## Debugging minimized Gradle Plugin stacktraces
 
@@ -275,12 +265,12 @@ where:
 
 The project uses [GitHub Actions](https://docs.github.com/en/actions) to automate the build process.
 
-We have [3 workflows](https://github.com/apollographql/apollo-android/tree/main/.github/workflows), triggered by the
+We have [3 workflows](https://github.com/apollographql/apollo-kotlin/tree/main/.github/workflows), triggered by the
 following events:
 
 ### On PRs
 
-**Workflow:** [`pr.yml`](https://github.com/apollographql/apollo-android/blob/main/.github/workflows/pr.yml)
+**Workflow:** [`pr.yml`](https://github.com/apollographql/apollo-kotlin/blob/main/.github/workflows/pr.yml)
 
 **Jobs (run in parallel):**
 
@@ -296,7 +286,7 @@ following events:
 
 ### On pushes to `main` branch
 
-**Workflow:** [`push.yml`](https://github.com/apollographql/apollo-android/blob/main/.github/workflows/push.yml)
+**Workflow:** [`push.yml`](https://github.com/apollographql/apollo-kotlin/blob/main/.github/workflows/push.yml)
 
 **Job:**
 
@@ -309,7 +299,7 @@ following events:
 
 ### On new tags
 
-**Workflow:** [`tag.yml`](https://github.com/apollographql/apollo-android/blob/main/.github/workflows/tag.yml)
+**Workflow:** [`tag.yml`](https://github.com/apollographql/apollo-kotlin/blob/main/.github/workflows/tag.yml)
 
 **Job:**
 

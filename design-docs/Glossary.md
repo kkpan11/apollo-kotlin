@@ -1,9 +1,6 @@
-# Codegen Glossary
+# Glossary
 
-## Glossary
-
-A small Glossary of the terms used during codegen. The [GraphQL Spec](https://spec.graphql.org/draft/) does a nice job of defining the common terms like `Field`, `SelectionSet`, etc... so I'm not adding these terms here. But it misses some concepts that we bumped into during codegen and that I'm trying to clarify here.
-
+The [GraphQL Spec](https://spec.graphql.org/draft/) does a nice job of defining common terms like `Field`, `SelectionSet`, etc. but here are a few other concepts that the library deals with, and their definition.
 
 ### Response shape
 
@@ -105,3 +102,52 @@ Example:
 ### Polymorphic field
 
 A field that can take several shapes
+
+### Record
+
+A shallow map of a response object. Nested objects in the map values are replaced by a cache reference to another Record.  
+
+### Cache key
+
+A unique identifier for a Record.
+By default it is the path formed by all the field keys from the root of the query to the field referencing the Record.
+To avoid duplication the Cache key can also be computed from the Record contents, usually using its key fields.
+
+### Field key
+
+A key that uniquely identifies a field within a Record. By default composed of the field name and the arguments passed to it.
+
+### Key fields
+
+Fields that are used to compute a Cache key for an object.
+
+### Pagination arguments
+
+Field arguments that control pagination, e.g. `first`, `after`, etc. They should be omitted when computing a field key so different pages can be merged into the same field.
+
+
+### API schema
+
+The server schema as seen from introspection (can be either JSON or SDL)
+
+### Server definition
+
+A definition present in the API schema.
+
+Examples: `@include`, `@oneOf`, `__Schema`
+
+### Client definition
+
+A definition that is added to the API schema by the client, using either @link or by concatenating new definitions to the schema.
+
+### Linked definition
+
+A definition is added to a schema using @link.
+ 
+Examples: `@targetName`, `@typePolicy`
+
+### Checked definitions
+
+A definition that is recognized by Apollo Kotlin and required to be a certain shape. Apollo Kotlin checks those definitions to avoid crashes in the compiler and/or surprising behaviours. This is typically the case for server definitions that and are not specified yet and/or may vary depending on the version of the spec used.
+
+Examples: `@oneOf`, `@semanticNonNull`, `@targetName`

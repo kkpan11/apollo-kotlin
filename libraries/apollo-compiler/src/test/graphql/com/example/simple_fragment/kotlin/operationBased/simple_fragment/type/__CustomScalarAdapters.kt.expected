@@ -5,11 +5,10 @@
 //
 package com.example.simple_fragment.type
 
-import com.apollographql.apollo3.api.CustomScalarAdapters
+import com.apollographql.apollo.api.CustomScalarAdapters
 
 /**
  * A [CustomScalarAdapters] instance containing all the adapters known at build time
  */
 internal val __CustomScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Builder()
       .build()
-

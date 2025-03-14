@@ -1,11 +1,12 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.http.HttpHeader
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.awaitRequest
-import com.apollographql.apollo3.testing.enqueue
-import com.apollographql.apollo3.testing.internal.runTest
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.composeJsonResponse
+import com.apollographql.apollo.api.http.HttpHeader
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.awaitRequest
+import com.apollographql.mockserver.enqueueString
+import com.apollographql.apollo.testing.internal.runTest
 import com.example.GetRandomQuery
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -23,7 +24,7 @@ class HeadersTest {
         .addHttpHeader("clientKey", "clientValue")
         .build()
 
-    mockServer.enqueue(operation, data)
+    mockServer.enqueueString(operation.composeJsonResponse(data))
     apolloClient.query(GetRandomQuery()).addHttpHeader("requestKey", "requestValue").execute()
 
     mockServer.awaitRequest().also {
@@ -43,7 +44,7 @@ class HeadersTest {
         .addHttpHeader("clientKey", "clientValue")
         .build()
 
-    mockServer.enqueue(operation, data)
+    mockServer.enqueueString(operation.composeJsonResponse(data))
     apolloClient.query(GetRandomQuery()).httpHeaders(listOf(HttpHeader("requestKey", "requestValue"))).execute()
 
     mockServer.awaitRequest().also {
@@ -63,7 +64,7 @@ class HeadersTest {
         .addHttpHeader("clientKey", "clientValue")
         .build()
 
-    mockServer.enqueue(operation, data)
+    mockServer.enqueueString(operation.composeJsonResponse(data))
     apolloClient.query(GetRandomQuery()).addHttpHeader("requestKey", "requestValue").ignoreApolloClientHttpHeaders(true).execute()
 
     mockServer.awaitRequest().also {
@@ -83,7 +84,7 @@ class HeadersTest {
         .addHttpHeader("clientKey", "clientValue")
         .build()
 
-    mockServer.enqueue(operation, data)
+    mockServer.enqueueString(operation.composeJsonResponse(data))
     apolloClient.query(GetRandomQuery()).httpHeaders(listOf(HttpHeader("requestKey", "requestValue"))).ignoreApolloClientHttpHeaders(true).execute()
 
     mockServer.awaitRequest().also {
@@ -103,7 +104,7 @@ class HeadersTest {
         .addHttpHeader("clientKey", "clientValue")
         .build()
 
-    mockServer.enqueue(operation, data)
+    mockServer.enqueueString(operation.composeJsonResponse(data))
     apolloClient.query(GetRandomQuery()).ignoreApolloClientHttpHeaders(true).execute()
 
     mockServer.awaitRequest().also {

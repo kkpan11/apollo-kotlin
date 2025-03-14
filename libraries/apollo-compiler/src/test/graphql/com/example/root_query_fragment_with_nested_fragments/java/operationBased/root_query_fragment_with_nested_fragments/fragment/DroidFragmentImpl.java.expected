@@ -5,13 +5,13 @@
 //
 package com.example.root_query_fragment_with_nested_fragments.fragment;
 
-import com.apollographql.apollo3.api.Adapter;
-import com.apollographql.apollo3.api.CompiledField;
-import com.apollographql.apollo3.api.CustomScalarAdapters;
-import com.apollographql.apollo3.api.Fragment;
-import com.apollographql.apollo3.api.ObjectAdapter;
-import com.apollographql.apollo3.api.json.JsonWriter;
-import com.example.root_query_fragment_with_nested_fragments.fragment.selections.droidFragmentSelections;
+import com.apollographql.apollo.api.Adapter;
+import com.apollographql.apollo.api.CompiledField;
+import com.apollographql.apollo.api.CustomScalarAdapters;
+import com.apollographql.apollo.api.Fragment;
+import com.apollographql.apollo.api.ObjectAdapter;
+import com.apollographql.apollo.api.json.JsonWriter;
+import com.example.root_query_fragment_with_nested_fragments.fragment.selections.DroidFragmentSelections;
 import com.example.root_query_fragment_with_nested_fragments.type.Droid;
 import java.io.IOException;
 import java.lang.Object;
@@ -76,12 +76,7 @@ public class DroidFragmentImpl implements Fragment<DroidFragment> {
       "data",
       Droid.type
     )
-    .selections(droidFragmentSelections.__root)
+    .selections(DroidFragmentSelections.__root)
     .build();
-  }
-
-  @Override
-  public boolean getIgnoreErrors() {
-    return false;
   }
 }

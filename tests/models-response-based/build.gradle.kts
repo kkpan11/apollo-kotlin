@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -11,13 +11,13 @@ kotlin {
       dependencies {
         implementation(libs.apollo.runtime)
         implementation(libs.apollo.normalizedcache)
-        implementation(libs.apollo.adapters)
       }
     }
 
     findByName("commonTest")?.apply {
       dependencies {
         implementation(libs.apollo.testingsupport)
+        implementation(libs.apollo.mockserver)
       }
     }
   }
@@ -31,6 +31,5 @@ apollo {
     mapScalar("Date", "kotlin.Long")
     codegenModels.set("responseBased")
     sealedClassesForEnumsMatching.set(setOf("StarshipType"))
-    languageVersion.set("1.5")
   }
 }

@@ -5,11 +5,10 @@
 //
 package com.example.fragments_with_type_condition.selections
 
-import com.apollographql.apollo3.api.CompiledArgument
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CompiledFragment
-import com.apollographql.apollo3.api.CompiledSelection
-import com.apollographql.apollo3.api.notNull
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CompiledFragment
+import com.apollographql.apollo.api.CompiledSelection
+import com.apollographql.apollo.api.notNull
 import com.example.fragments_with_type_condition.fragment.selections.DroidDetailsSelections
 import com.example.fragments_with_type_condition.fragment.selections.HumanDetailsSelections
 import com.example.fragments_with_type_condition.type.Character
@@ -56,20 +55,12 @@ public object TestQuerySelections {
           name = "hero",
           type = Character.type
         ).alias("r2")
-        .arguments(listOf(
-          CompiledArgument.Builder("episode").build(),
-          CompiledArgument.Builder("listOfListOfStringArgs").build()
-        ))
         .selections(__hero)
         .build(),
         CompiledField.Builder(
           name = "hero",
           type = Character.type
         ).alias("luke")
-        .arguments(listOf(
-          CompiledArgument.Builder("episode").build(),
-          CompiledArgument.Builder("listOfListOfStringArgs").build()
-        ))
         .selections(__hero1)
         .build()
       )

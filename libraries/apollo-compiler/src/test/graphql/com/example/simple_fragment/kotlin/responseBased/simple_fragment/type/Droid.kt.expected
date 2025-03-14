@@ -5,11 +5,11 @@
 //
 package com.example.simple_fragment.type
 
-import com.apollographql.apollo3.api.BuilderFactory
-import com.apollographql.apollo3.api.BuilderScope
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.ObjectBuilder
-import com.apollographql.apollo3.api.ObjectType
+import com.apollographql.apollo.api.BuilderFactory
+import com.apollographql.apollo.api.BuilderScope
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.ObjectBuilder
+import com.apollographql.apollo.api.ObjectType
 import kotlin.Any
 import kotlin.String
 import kotlin.Unit
@@ -23,8 +23,7 @@ internal class Droid {
     public val type: ObjectType =
         ObjectType.Builder(name = "Droid").interfaces(listOf(Character.type)).build()
 
-    override fun newBuilder(customScalarAdapters: CustomScalarAdapters): DroidBuilder =
-        DroidBuilder(customScalarAdapters)
+    override fun newBuilder(customScalarAdapters: CustomScalarAdapters): DroidBuilder = DroidBuilder(customScalarAdapters)
   }
 }
 
@@ -39,7 +38,8 @@ internal class DroidBuilder(
 
 internal class DroidMap(
   __fields: Map<String, Any?>,
-) : CharacterMap, SearchResultMap, Map<String, Any?> by __fields
+) : CharacterMap,
+    SearchResultMap,
+    Map<String, Any?> by __fields
 
-internal fun BuilderScope.buildDroid(block: DroidBuilder.() -> Unit): DroidMap =
-    DroidBuilder(customScalarAdapters).apply(block).build()
+internal fun BuilderScope.buildDroid(block: DroidBuilder.() -> Unit): DroidMap = DroidBuilder(customScalarAdapters).apply(block).build()

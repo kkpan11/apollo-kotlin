@@ -1,11 +1,13 @@
 package com.apollographql.ijplugin.navigation
 
 import com.apollographql.ijplugin.ApolloTestCase
+import com.apollographql.ijplugin.util.executeOnPooledThread
 import com.apollographql.ijplugin.util.resolveKtName
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLTypedOperationDefinition
+import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtReferenceExpression
@@ -34,7 +36,13 @@ class KotlinTypeDeclarationProviderTest : ApolloTestCase() {
     val ktElement = fromElement()!!
 
     // Simulate navigation
-    val foundGqlDeclarationElements = kotlinTypeDeclarationProvider.getSymbolTypeDeclarations(ktElement)!!
+    // XXX TypeDeclarationProvider.getSymbolTypeDeclarations() throws KtInaccessibleLifetimeOwnerAccessException when called from the EDT
+    val foundGqlDeclarationElements = executeOnPooledThread {
+      runReadAction {
+        kotlinTypeDeclarationProvider.getSymbolTypeDeclarations(ktElement)!!
+      }
+    }.get()
+
     // We want our target (gql), but also the original targets (Kotlin)
     assertTrue(foundGqlDeclarationElements.size > 1)
 
@@ -54,7 +62,7 @@ class KotlinTypeDeclarationProviderTest : ApolloTestCase() {
   fun goToFragmentDefinition() = testNavigation(
       fromFile = "src/main/kotlin/com/example/Main.kt",
       fromElement = { elementAt<KtProperty>("computerFields") },
-      toFile = "src/main/graphql/ComputerFields.graphql",
+      toFile = "src/main/graphql/fragments/ComputerFields.graphql",
       toElement = { elementAt<GraphQLFragmentDefinition>("fragment computerFields") }
   )
 

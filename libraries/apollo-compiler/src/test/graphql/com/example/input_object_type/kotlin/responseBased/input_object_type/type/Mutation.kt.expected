@@ -5,13 +5,20 @@
 //
 package com.example.input_object_type.type
 
-import com.apollographql.apollo3.api.ObjectType
+import com.apollographql.apollo.api.CompiledArgumentDefinition
+import com.apollographql.apollo.api.ObjectType
 
 /**
  * The mutation type, represents all updates we can make to our data
  */
 public class Mutation {
   public companion object {
+    public val __createReview_episode: CompiledArgumentDefinition =
+        CompiledArgumentDefinition.Builder("episode").build()
+
+    public val __createReview_review: CompiledArgumentDefinition =
+        CompiledArgumentDefinition.Builder("review").build()
+
     public val type: ObjectType = ObjectType.Builder(name = "Mutation").build()
   }
 }

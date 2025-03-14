@@ -1,6 +1,689 @@
 Change Log
 ==========
 
+# Next version
+
+* Downloading or converting a SDL schema from introspection now includes scalar definitions. This is required for clients to get a [full view of the schema](https://github.com/graphql/graphql-wg/blob/main/rfcs/FullSchemas.md). 
+
+# Version 4.1.1
+
+_2025-01-24_
+
+## Kotlin 2.1.0 (#6291)
+
+The artifacts are now compiled with [Kotlin 2.1.0](https://kotlinlang.org/docs/whatsnew21.html). This change should be transparent for JVM and Android users thanks to [`languageVersion`](https://kotlinlang.org/docs/compatibility-modes.html) but [requires klib consumers (native + JS) to update their KGP version to 2.1.0](https://github.com/JetBrains/kotlin/blob/8add2e3b98904f34ce5db575e9543cb3d3c9ec0b/compiler/util-klib/KotlinAbiVersionBumpHistory.md?plain=1#L3-L5).
+
+## Rover LSP support in the IntelliJ plugin (#6274)
+
+The IntelliJ plugin now has a dedicated mode for backend developers that uses [Rover](https://github.com/apollographql/rover) LSP ([Language Server Protocol](https://en.wikipedia.org/wiki/Language_Server_Protocol)) to parse federation and connectors directives. This mode is only available when using IntelliJ Ultimate and other IDEs with LSP support. It is recommended for subgraphs authors.
+
+## Gradle isolated projects support (#6351)
+
+This release supports [Gradle isolated projects](https://docs.gradle.org/current/userguide/isolated_projects.html) for shorter configuration times.
+
+## Contributors 💙💙
+
+Many thanks to @jvanderwee, @varahash, @whyoleg, @StylianosGakis and @scana for all the contributions and help in this release 💙!
+
+## 👷‍♂️ All changes
+
+* [all] Do not set the license URL in the POMs (#6247)
+* [all] Bump Kotlin to 2.1.0 (#6291)
+* [all] Bump atomicfu (#6245)
+* [intellij-plugin] Play nice with IDEs without Kotlin/Gradle (#6358)
+* [intellij-plugin] Reduce usage of GradleExecutionHelper (#6355)
+* [intellij-plugin] Use our own executeOnPooledThread instead of Android Plugin's (#6310)
+* [intellij-plugin] Make Java and Kotlin dependencies optional (#6304)
+* [intellij-plugin] Pass arguments to rover (#6303)
+* [intellij-plugin] Move Rover settings to own section and add note about needing v0.27.0+ (#6278)
+* [intellij-plugin] Remove untilBuild (#6279)
+* [intellij-plugin] Add support for the Apollo LSP via Rover (#6274)
+* [intellij-plugin] Don't reference AdbShellCommandsUtil.executeCommandBlocking that's been removed (#6268)
+* [intellij-plugin] Make verifyPlugin fail on certain problems (#6256)
+* [intellij-plugin] Do not use internal symbol (#6255)
+* [intellij-plugin] Add explicit dependency to com.intellij.modules.json (#6254)
+* [gradle-plugin] Add a fail-safe mode to disable 2-step introspection and use minimal introspection query (#6360)
+* [gradle-plugin] Isolated Projects support (#6351)
+* [gradle-plugin] expose the outgoing variants (#6329)
+* [gradle-plugin] Better Gradle error message (#6326)
+* [gradle-plugin] Fix classloader caching. Many thanks @scana for catching this (#6309)
+* [gradle-plugin] Manage our classloaders manually (#6305)
+* [gradle-plugin] Only call `onSchema()` once in multi-module scenrios (#6252)
+* [runtime] Copy executionContext inside HttpRequest.newBuilder (#6350)
+* [runtime] Apple HttpEngine: lock the handlers map (#6348)
+* [runtime] Allow to initialize WebSocketEngine lazily (#6290)
+* [runtime] Remove CloseableBackgroundDispatcher and bump coroutines version (#6286)
+* [runtime] Override JsonNumber.toString() (#6273)
+* [runtime] Implement ApolloWebSocketClosedException on darwin targets and update docs (#6275)
+* [ast] Make deprecation.reason non-nullable (#6311)
+* [ast] Allow multiple @link schema extensions (#6284)
+* [normalized-cache] Add ApolloStore.ALL_KEYS to notify all watchers (#6337)
+* [http-cache] HTTP cache: do not remove cached entries on transport errors (#6314)
+* [execution] Add apollo-execution (#6356)
+
+# Version 4.1.0
+
+_2024-11-04_
+
+## Ktor 3.0.0
+
+Version 4.1.0 updates usages of Ktor from 2.3.11 to 3.0.0:
+
+* If you are using `apollo-runtime-js` or `apollo-debug-server-jvm`, you need to update your app to Ktor 3.0.0+ at the same time as updating to Apollo 4.1.0 (`apollo-debug-server-android` is unaffected).
+* If you are using the deprecated `apollo-mockserver` or `apollo-ktor-support` from this repo, you need to update to the [new coordinates](https://www.apollographql.com/docs/kotlin/migration/4.0#moved-artifacts).
+
+All other cases are unaffected. In particular, `apollo-runtime` on Android and iOS uses OkHttp and NsUrlConnection respectively and is not impacted by the Ktor update.
+
+You can read more details in the [pull request](https://github.com/apollographql/apollo-kotlin/pull/6214).
+
+### New media type: `application/graphql-response+json`
+
+`application/graphql-response+json` is a new media type being introduced by the [GraphQL over HTTP draft](https://graphql.github.io/graphql-over-http/draft/). It allows differentiating a valid GraphQL response from an error JSON response that could be transmitted by a cache or proxy in the HTTP chain. 
+
+If your server uses `application/graphql-response+json` and returns non-2xx response, Apollo Kotlin will now parse those responses and expose `data` and `errors` instead of returning an `ApolloHttpException` before. 
+
+If you need to access the status code, you can do so using `executionContext[HttpInfo]`. For an example, you can restore the throwing behaviour with the following interceptor:
+
+```kotlin
+object : ApolloInterceptor {
+  override fun <D : Operation.Data> intercept(
+      request: ApolloRequest<D>,
+      chain: ApolloInterceptorChain,
+  ): Flow<ApolloResponse<D>> {
+    return chain.proceed(request).onEach {
+      val httpInfo = it.executionContext[HttpInfo]
+      if (httpInfo != null && httpInfo.statusCode !in 200..299) {
+        throw ApolloHttpException(httpInfo.statusCode, httpInfo.headers, null, "HTTP request failed")
+      }
+    }
+  }
+}
+```
+
+### K2 support for the IntelliJ plugin
+
+The IntelliJ plugin is now compatible with K2 (#6150)
+
+## 👷‍♂️ All changes
+
+* [all] Update kotlinpoet to 2.0.0 (#6215)
+* [all] Update to Ktor 3 (#6214)
+* [all] Remove `apollo-mockserver` and `apollo-ktor-support` (#6215)
+* [all] Remove mockserver as a dependency of apollo-testing-support (#6218)
+* [ast] Do not escape slashes in single quoted strings (#6190)
+* [runtime] Add support for application/graphql-response+json (#6170)
+* [runtime] Do not call experimental webSocket() method re-entrently (#6197)
+* [debug server] Remove Ktor dependency from apollo-debug-server JVM (#6224)
+* [codegen] Do not add internal to private members (#6213)
+* [codegen] Fix name clash in data builder names when two types differ only by their case (#6195)
+* [gradle plugin] Allow null in KSP arguments for Apollo Compiler Plugins (#6200)
+* [gradle plugin] Do not log the full introspection JSON (#6199)
+* [gradle plugin] Deprecate TargetLanguage.KOTLIN_1_5 (#6193)
+* [IJ Plugin] Make the cache viewer understand the blob db format (#6187)
+* [IJ Plugin] Bump IJ Platform Gradle Plugin to 2.0.1 (#6185)
+* [IJ Plugin] Migrate to the K2 compatible Analysis API (#6150)
+* [IJ Plugin] Schedule the GraphQL configuration reload early (#6228)
+* [IJ Plugin] Rename related generated code when renaming an Operation/Fragment (#6227)
+* [IJ Plugin] Only highlight the name of unused operations, rather than the whole operation (#6226)
+# Version 4.0.1
+
+_2024-10-01_
+
+This release contains a handful of bug fixes and improvements. 
+
+## ⚙️ Add `ApolloCompilerPlugin.schemaListener()`
+
+The [compiler plugins](https://www.apollographql.com/docs/kotlin/advanced/compiler-plugins) API has been extended to allow listening to schema changes.\
+This can be used to have plugins generate code based on the schema. To do this, implement the [`schemaListener`](https://www.apollographql.com/docs/kotlin/kdoc/apollo-compiler/com.apollographql.apollo.compiler/-apollo-compiler-plugin/schema-listener.html)
+function on your plugin:
+    
+```kotlin
+class MyCompilerPlugin() : ApolloCompilerPlugin {
+  @ApolloExperimental
+  override fun schemaListener(): SchemaListener {
+    return object : SchemaListener {
+      override fun onSchema(schema: Schema, outputDirectory: File) {
+        // Generate some code inside outputDirectory based on schema
+      }
+    }
+  }
+}
+```
+
+## 🚀 Allow mapping scalars to simple generic types
+
+Previously, to [map a scalar](https://www.apollographql.com/docs/kotlin/essentials/custom-scalars) to a generic type, you had to use a `typealias`. 
+Now, simple generic types are accepted, and common types like `List` and `String` don't need to be fully qualified:
+
+```kotlin
+mapScalar("MassList", "List<com.example.Measure<com.example.Mass>>", "com.example.MassListAdapter")
+```
+
+## 💙 Contributors
+
+Many thanks to @ebrattli, @agrosner and @cvb941 for their contributions to this release 💙!
+
+## 👷 All changes
+
+* [gradle-plugin] Deprecate `"operationOutput"` and `./gradlew downloadApolloSchema` (#6097)
+* [gradle-plugin] Use `registerJavaGeneratingTask` (#6149)
+* [apollo-ast] Add GQLDocument.validate(SchemaValidationOptions) to allow adding external schemas. (#6164)
+* [compiler] Add ApolloCompilerPlugin.schemaDocumentListener() (#6165)
+* [compiler] Pass schema to ApolloCompilerPlugin.schemaListener (#6166)
+* [compiler] Avoid enum value clashing with the getter `field` (#6093)
+* [compiler] Fix a few additional instances of %L used instead of %N (#6117)
+* [compiler] Escape properties in input builder function body (#6116)
+* [compiler] Provide a more descriptive error message when a resolution of a specific `ResolverKey` fails (#6136)
+* [compiler] Deprecate `@nonnull` (#6152)
+* [compiler] Allow mapping scalars to simple generic types (#6158)
+* [tooling] Allow to shutdown SchemaDownloader (#6091)
+* [tooling] Remove warning (#6092)
+* [WebSockets] connectionParams -> connectionPayload (#6103)
+* [WebSockets] add NetworkTransport.closeConnection() (#6105)
+* [BREAKING][runtime] Change NetworkMonitor to expose a StateFlow directly (#6119)
+* [runtime] Add 'OfflineException' as a cause when using failFastIfOffline (#6104)
+* [apollo-api] Fix reading `JsonNumber` in `MapJsonReader` (#6141)
+* [cache] Allow to store `JsonNumber` in `Record` (#6139)
+* [cache] Fix cascade SQL cache remove loops forever on cyclic references (#6137)
+* [IJ Plugin] Bump pluginUntilBuild to 242 and pluginSinceBuild to 241 (#6111)
+* [IJ Plugin] Add ApolloOneOfGraphQLViolationInspection (#6125)
+* [IJ Plugin] Improve performance of ApolloGraphQLConfigFilePresentInspection and ApolloGraphQLConfigFilePresentAnnotator (#6126)
+* [IJ Plugin] Fix high latency field inspection (#6142)
+* [IJ Plugin] Correctly name Open In items (#6151)
+* [infra] Bump Kotlin to 2.0.10 (#6107)
+* [infra] Bump Kotlin to 2.0.20 (#6131)
+* [infra] Bump develocity (#6128)
+* [infra] Update Apollo Execution (#6138)
+* [infra] Bump develocity (#6144)
+* [infra] Allow compiling the project with Java22 (#6145)
+
+# Version 4.0.0
+
+_2024-07-29_
+
+Apollo Kotlin 4 is a maturity release. It focuses on tooling, stability and making the library more maintainable, so it can evolve smoothly for the many years to come.
+
+While most of the core APIs stayed the same, Apollo Kotlin 4 contains a few binary breaking changes. To account for that, and in order to be more future-proof, we changed the package name to `com.apollographql.apollo`.
+
+You'll need to replace all the `com.apollographql.apollo3` with `com.apollographql.apollo` in your codebase.
+
+* Migration guide: https://www.apollographql.com/docs/kotlin/v4/migration/4.0.
+* Evolution policy: https://www.apollographql.com/docs/kotlin/v4/essentials/evolution.
+* Blog post: coming soon.
+
+Thanks again to everyone who provided feedback during the alphas/betas.
+
+### Main changes
+
+* New package name ([migration guide](https://www.apollographql.com/docs/kotlin/v4/migration/4.0))
+* Moved artifacts ([Apollo Kotlin galaxy documentation page](https://www.apollographql.com/docs/kotlin/v4/advanced/galaxy))
+* Improved error handling ([migration guide](https://www.apollographql.com/docs/kotlin/v4/migration/4.0#fetch-errors-do-not-throw))
+* Android Studio/IntelliJ Plugin ([installation instructions](https://www.apollographql.com/docs/kotlin/v4/testing/android-studio-plugin))
+* Multiplatform GraphQL parser ([doc](https://www.apollographql.com/docs/kotlin/v4/advanced/apollo-ast))
+* Apollo Compiler Plugin API ([doc](https://www.apollographql.com/docs/kotlin/v4/advanced/compiler-plugins))
+* WasmJs support
+* NetworkMonitor API ([doc](https://www.apollographql.com/docs/kotlin/v4/advanced/network-connectivity))
+* Experimental WebSocket API ([doc](https://www.apollographql.com/docs/kotlin/v4/advanced/experimental-websockets))
+* Experimental support for `@oneOf` ([GraphQL RFC](https://github.com/graphql/graphql-spec/pull/825))
+* Experimental support for `@semanticNonNull` and `@catch` ([doc](https://www.apollographql.com/docs/kotlin/v4/advanced/nullability))
+
+### Changes against 3.8.5
+
+* [#5984](https://github.com/apollographql/apollo-kotlin/pull/5984) - Add doNotStoreOnDisk()
+* [#5982](https://github.com/apollographql/apollo-kotlin/pull/5982) - RetryOnNetworkErrorInterceptor should be configurable
+* [#5971](https://github.com/apollographql/apollo-kotlin/pull/5971) - writeOperation/writeFragment no longer publish updates by default
+* [#5966](https://github.com/apollographql/apollo-kotlin/pull/5966) - Move apollo-execution out of the main repo
+* [#5952](https://github.com/apollographql/apollo-kotlin/pull/5952) - [IJ Plugin] Cache GraphQL project config
+* [#5946](https://github.com/apollographql/apollo-kotlin/pull/5946) - Sub-protocol not included when opening websocket [4.0.0-beta6]
+* [#5933](https://github.com/apollographql/apollo-kotlin/pull/5933) - [IJ/AS plugin] Internal error: NullPointerException
+* [#5929](https://github.com/apollographql/apollo-kotlin/pull/5929) - Unnecessary AndroidX Multidex library included
+* [#5922](https://github.com/apollographql/apollo-kotlin/pull/5922) - Apply com.apollographql.apollo3 plugin will break the dependencies in Kotlin Multiplatform according to IDEA
+* [#5917](https://github.com/apollographql/apollo-kotlin/pull/5917) - Enabling apollo metadata generation for multi-module codegen causes build cache misses
+* [#5901](https://github.com/apollographql/apollo-kotlin/pull/5901) - A request with any enum having rawValue = null hangs forever
+* [#5899](https://github.com/apollographql/apollo-kotlin/pull/5899) - [IJ Plugin] UI for 'Go to declaration' is too wide
+* [#5896](https://github.com/apollographql/apollo-kotlin/pull/5896) - [IJ Plugin] Cache viewer icon has wrong color in "new ui" theme
+* [#5887](https://github.com/apollographql/apollo-kotlin/pull/5887) - [IJ Plugin] Warn when .graphqlrc files are present
+* [#5885](https://github.com/apollographql/apollo-kotlin/pull/5885) - Cronet request lifecycle not behaving correctly with Apollo.
+* [#5884](https://github.com/apollographql/apollo-kotlin/pull/5884) - [IJ/AS plugin] Internal error: NullPointerException
+* [#5834](https://github.com/apollographql/apollo-kotlin/pull/5834) - SQL cache is unusably slow
+* [#5833](https://github.com/apollographql/apollo-kotlin/pull/5833) - Make apollo-mockserver a separate repository
+* [#5832](https://github.com/apollographql/apollo-kotlin/pull/5832) - MegaIssue: Independant versioning
+* [#5827](https://github.com/apollographql/apollo-kotlin/pull/5827) - [IJ Plugin] Incorrect error when repeating "@semanticNonNullField"
+* [#5819](https://github.com/apollographql/apollo-kotlin/pull/5819) - "Could not read normalized cache" in AS plugin
+* [#5808](https://github.com/apollographql/apollo-kotlin/pull/5808) - Support for tree shaking in the __Schema.possibleTypes()
+* [#5801](https://github.com/apollographql/apollo-kotlin/pull/5801) - ClassCastException is thrown when building an ApolloClient using a builder in KotlinJS
+* [#5799](https://github.com/apollographql/apollo-kotlin/pull/5799) - isFromCache is potentially confusing
+* [#5796](https://github.com/apollographql/apollo-kotlin/pull/5796) - Make it impossible to pass as input some type which was generated only to preserve forwards compatibility but was not meant to be used as input
+* [#5795](https://github.com/apollographql/apollo-kotlin/pull/5795) - WasmJs support for apollo-adapters
+* [#5781](https://github.com/apollographql/apollo-kotlin/pull/5781) - Codegen: rework how compiled field arguments are generated
+* [#5777](https://github.com/apollographql/apollo-kotlin/pull/5777) - ApolloClient.Builder.okHttpClient() returns null instead of this
+* [#5775](https://github.com/apollographql/apollo-kotlin/pull/5775) - Lazy version of okHttpCallFactory?
+* [#5771](https://github.com/apollographql/apollo-kotlin/pull/5771) - [IJ Plugin] Crash when navigating to GraphQL operation via margin marker
+* [#5768](https://github.com/apollographql/apollo-kotlin/pull/5768) - [IJ/AS plugin] Internal error: NullPointerException
+* [#5757](https://github.com/apollographql/apollo-kotlin/pull/5757) - ApolloParseException is wrapping SocketException, StreamResetException
+* [#5753](https://github.com/apollographql/apollo-kotlin/pull/5753) - [IJ/AS plugin] Internal error: NullPointerException
+* [#5745](https://github.com/apollographql/apollo-kotlin/pull/5745) - Run subscriptions like queries with IDE plugins
+* [#5738](https://github.com/apollographql/apollo-kotlin/pull/5738) - [IJ Plugin] Tweak navigation from GraphQL to generated code
+* [#5727](https://github.com/apollographql/apollo-kotlin/pull/5727) - [Intellij Plugin] Truncate "go to" data
+* [#5723](https://github.com/apollographql/apollo-kotlin/pull/5723) - Remove sendApqExtensions and sendDocument from MutableExecutionOptions
+* [#5715](https://github.com/apollographql/apollo-kotlin/pull/5715) - Make NetworkMonitor work without androidx.startup
+* [#5714](https://github.com/apollographql/apollo-kotlin/pull/5714) - Upgrade IJ platform minVersion
+* [#5713](https://github.com/apollographql/apollo-kotlin/pull/5713) - Make benchmarks a composite build
+* [#5712](https://github.com/apollographql/apollo-kotlin/pull/5712) - generateServiceApolloSources task fails with nondescript NullPointerException when type extension references unknown key field
+* [#5697](https://github.com/apollographql/apollo-kotlin/pull/5697) - Websocket won't reopen on iOS
+* [#5667](https://github.com/apollographql/apollo-kotlin/pull/5667) - Experimental @defer support does not work with AutoPersistedQueryInterceptor
+* [#5659](https://github.com/apollographql/apollo-kotlin/pull/5659) - Use StreamingNSURLSessionHttpEngine by default on Apple
+* [#5648](https://github.com/apollographql/apollo-kotlin/pull/5648) - Megaissue: improvements to WebSockets
+* [#5647](https://github.com/apollographql/apollo-kotlin/pull/5647) - [IJ Plugin] Try the new IntelliJ Platform Gradle Plugin 2.0
+* [#5641](https://github.com/apollographql/apollo-kotlin/pull/5641) - Introspection is broken in the beta
+* [#5616](https://github.com/apollographql/apollo-kotlin/pull/5616) - [IJ Plugin] Send telemetry only for projects using Apollo
+* [#5575](https://github.com/apollographql/apollo-kotlin/pull/5575) - [IJ/AS plugin] Internal error: Throwable
+* [#5568](https://github.com/apollographql/apollo-kotlin/pull/5568) - Disallow @typePolicy on unions
+* [#5507](https://github.com/apollographql/apollo-kotlin/pull/5507) - 🧩 [IJ Plugin] Remove client only directives before sending the query to the server
+* [#5500](https://github.com/apollographql/apollo-kotlin/pull/5500) - [IJ Plugin] v3 -> v4 Migration: add @link imports for used kotlin_labs directives
+* [#5481](https://github.com/apollographql/apollo-kotlin/pull/5481) - [IJ/AS plugin] Internal error: ClassCastException
+* [#5468](https://github.com/apollographql/apollo-kotlin/pull/5468) - Publish apollo-cli
+* [#5455](https://github.com/apollographql/apollo-kotlin/pull/5455) - Build fails after schema file rename when Gradle configuration cache enabled
+* [#5449](https://github.com/apollographql/apollo-kotlin/pull/5449) - [gradle-plugin] download{Service}SchemaFromIntrospection fails
+* [#5431](https://github.com/apollographql/apollo-kotlin/pull/5431) - Support @oneOf for Input Objects
+* [#5415](https://github.com/apollographql/apollo-kotlin/pull/5415) - Compiler plugin API + classloader isolation
+* [#5413](https://github.com/apollographql/apollo-kotlin/pull/5413) - [IJ plugin] Automatically import certain directives
+* [#5379](https://github.com/apollographql/apollo-kotlin/pull/5379) - Allow the cache viewer to sort items more "intelligently" when showing cache entries that have a number at the end
+* [#5374](https://github.com/apollographql/apollo-kotlin/pull/5374) - [IJ Plugin] Inspection to warn when using input types constructors
+* [#5372](https://github.com/apollographql/apollo-kotlin/pull/5372) - [IJ plugin] Normalized cache: reload button for file caches
+* [#5345](https://github.com/apollographql/apollo-kotlin/pull/5345) - [RFC] Remove X-APOLLO-... custom headers
+* [#5342](https://github.com/apollographql/apollo-kotlin/pull/5342) - [IJ/AS plugin] Internal error: IllegalArgumentException
+* [#5338](https://github.com/apollographql/apollo-kotlin/pull/5338) - Unexpected behavior of @include directive on a fragment
+* [#5337](https://github.com/apollographql/apollo-kotlin/pull/5337) - [RFC] Error handling -- @catch & partial data
+* [#5331](https://github.com/apollographql/apollo-kotlin/pull/5331) - [IJ plugin] Quality of life improvements
+* [#5329](https://github.com/apollographql/apollo-kotlin/pull/5329) - [IJ plugin] Sometimes db files are not in the list from "Pull from device"
+* [#5312](https://github.com/apollographql/apollo-kotlin/pull/5312) - useV3ExceptionHandling should populate data even if errors are present
+* [#5311](https://github.com/apollographql/apollo-kotlin/pull/5311) - Warnings are surfaced during build when fragments with params are used in queries
+* [#5299](https://github.com/apollographql/apollo-kotlin/pull/5299) - [IJ/AS plugin] Cache viewer
+* [#5266](https://github.com/apollographql/apollo-kotlin/pull/5266) - [IJ/AS plugin] Internal error: PluginException
+* [#5261](https://github.com/apollographql/apollo-kotlin/pull/5261) - [IJ/AS plugin] Internal error: PluginException
+* [#5241](https://github.com/apollographql/apollo-kotlin/pull/5241) - Apollo Parse Exception - failed to parse
+* [#5239](https://github.com/apollographql/apollo-kotlin/pull/5239) - [IJ/AS plugin] Analytics
+* [#5235](https://github.com/apollographql/apollo-kotlin/pull/5235) - [IJ/AS Plugin] Use JetBrains Marketplace for weekly snapshots instead of Repsy
+* [#5233](https://github.com/apollographql/apollo-kotlin/pull/5233) - NullPointerException for Request with single-quote character
+* [#5230](https://github.com/apollographql/apollo-kotlin/pull/5230) - useV3ExceptionHandling should not throw ApolloGraphQLException
+* [#5224](https://github.com/apollographql/apollo-kotlin/pull/5224) - generateServiceApolloSources crashes if a fragment definition references itself
+* [#5221](https://github.com/apollographql/apollo-kotlin/pull/5221) - Implicit task dependency not working
+* [#5220](https://github.com/apollographql/apollo-kotlin/pull/5220) - [IDE Plugin] Sandbox Button Does Not Carry Over Fragments from other Modules
+* [#5217](https://github.com/apollographql/apollo-kotlin/pull/5217) - Retrying a subscription does not renew the id and may cause an error on the server because the id is already used
+* [#5213](https://github.com/apollographql/apollo-kotlin/pull/5213) - Gradle crash when @typePolicy defined for nonexistant field.
+* [#5207](https://github.com/apollographql/apollo-kotlin/pull/5207) - Add options to not generate data classes
+* [#5200](https://github.com/apollographql/apollo-kotlin/pull/5200) - Subscriptions: support SUBSCRIPTION_SCHEMA_RELOAD
+* [#5186](https://github.com/apollographql/apollo-kotlin/pull/5186) - Cache: Variable defaultValues are not taken into account for cache keys
+* [#5173](https://github.com/apollographql/apollo-kotlin/pull/5173) - [IJ/AS Plugin] Middle click on Fragment definition overrides GraphQL Go to usages.
+* [#5172](https://github.com/apollographql/apollo-kotlin/pull/5172) - [IJ/AS plugin] Ignore id field in Unused field inspection
+* [#5171](https://github.com/apollographql/apollo-kotlin/pull/5171) - Consider migrating generated code to use Enum.entries instead of Enum.values() for Kotlin 1.9 and onwards
+* [#5159](https://github.com/apollographql/apollo-kotlin/pull/5159) - Increase the maximum JSON nesting level, or make it customisable
+* [#5112](https://github.com/apollographql/apollo-kotlin/pull/5112) - :app:generateStorefrontApolloSources Variables used in the query are warned as unused.
+* [#5066](https://github.com/apollographql/apollo-kotlin/pull/5066) - 🧩 [IJ/AS plugin] "Find unused fields" inspection
+* [#5057](https://github.com/apollographql/apollo-kotlin/pull/5057) - [IJ plugin] Quick fix for expensive field: add @defer
+* [#5040](https://github.com/apollographql/apollo-kotlin/pull/5040) - [IJ/AS plugin] Operation renaming improvement
+* [#5039](https://github.com/apollographql/apollo-kotlin/pull/5039) - [IJ/AS plugin] Migration helper for the v4 multi-module syntax
+* [#5035](https://github.com/apollographql/apollo-kotlin/pull/5035) - Android Studio Plugin - Navigate to Query Gutter Icon Missing
+* [#5033](https://github.com/apollographql/apollo-kotlin/pull/5033) - [IJ plugin] "Go to declaration" doesn't offer graphql target when used on an import alias
+* [#5028](https://github.com/apollographql/apollo-kotlin/pull/5028) - [IJ/AS plugin] Feature: Apollo Studio field insights
+* [#5000](https://github.com/apollographql/apollo-kotlin/pull/5000) - Un-minimized query in comment has parse errors
+* [#4977](https://github.com/apollographql/apollo-kotlin/pull/4977) - [IJ/AS plugin] Show errors when mixing .graphql / .graphqls file contents
+* [#4942](https://github.com/apollographql/apollo-kotlin/pull/4942) - [IJ/AS plugin] Don't crash when ToolingModel method are not present
+* [#4931](https://github.com/apollographql/apollo-kotlin/pull/4931) - False positives on unused(?) input fields, Apollo: Use of deprecated input field {{ name }}
+* [#4925](https://github.com/apollographql/apollo-kotlin/pull/4925) - Task downloadFooApolloSchemaFromIntrospection fails to comply with configuration cache
+* [#4921](https://github.com/apollographql/apollo-kotlin/pull/4921) - Support for AGP 8.2.0
+* [#4920](https://github.com/apollographql/apollo-kotlin/pull/4920) - apollo-ast: support merging definitions without validation
+* [#4919](https://github.com/apollographql/apollo-kotlin/pull/4919) - [IJ/AS plugin] Navigation from code to GQL definition
+* [#4889](https://github.com/apollographql/apollo-kotlin/pull/4889) - [IJ/AS plugin] Support both AS stable and IJ stable
+* [#4858](https://github.com/apollographql/apollo-kotlin/pull/4858) - Remove initRuntimeIfNeeded() in Project
+* [#4805](https://github.com/apollographql/apollo-kotlin/pull/4805) - With more than one subscription and network off for long duration, webSocketReopenWhen can take unexpectedly long to establish connection when network is back on.
+* [#4797](https://github.com/apollographql/apollo-kotlin/pull/4797) - Cannot use GQLDocument.toUtf8() on documents that include the extend keyword
+* [#4784](https://github.com/apollographql/apollo-kotlin/pull/4784) - Fragments are skipped when the if condition is a variable with a false default value
+* [#4775](https://github.com/apollographql/apollo-kotlin/pull/4775) - WebSockets: allow changing the serverUrl of WebSocketNetworkTransport
+* [#4761](https://github.com/apollographql/apollo-kotlin/pull/4761) - IntelliJ plugin description, link to terms, etc.
+* [#4760](https://github.com/apollographql/apollo-kotlin/pull/4760) - [IJ/AS plugin] Make the GQL plugin setting to handle Apollo directives always checked
+* [#4759](https://github.com/apollographql/apollo-kotlin/pull/4759) - Automatic "compat" -> "operationBased" migration
+* [#4747](https://github.com/apollographql/apollo-kotlin/pull/4747) - generateOptionalOperationVariables setting is ignored.
+* [#4744](https://github.com/apollographql/apollo-kotlin/pull/4744) - Use Apollo Kotlin inside Apollo Kotlin
+* [#4732](https://github.com/apollographql/apollo-kotlin/pull/4732) - External interfaces for JS interop
+* [#4728](https://github.com/apollographql/apollo-kotlin/pull/4728) - Poor Performance of Kotlin/JS
+* [#4711](https://github.com/apollographql/apollo-kotlin/pull/4711) - RFC: v4 error handling
+* [#4710](https://github.com/apollographql/apollo-kotlin/pull/4710) - RFC: v4 package name
+* [#4701](https://github.com/apollographql/apollo-kotlin/pull/4701) - Kotlin/Wasm
+* [#4669](https://github.com/apollographql/apollo-kotlin/pull/4669) - Unit testing error resolving class
+* [#4625](https://github.com/apollographql/apollo-kotlin/pull/4625) - [IJ/AS plugin] Support for multiple schemas according to configuration
+* [#4623](https://github.com/apollographql/apollo-kotlin/pull/4623) - [IJ/AS plugin v3
+* [#4622](https://github.com/apollographql/apollo-kotlin/pull/4622) - [IJ/AS plugin] Migration helpers v3
+* [#4621](https://github.com/apollographql/apollo-kotlin/pull/4621) - [IJ/AS plugin] Automatic codegen invocation
+* [#4620](https://github.com/apollographql/apollo-kotlin/pull/4620) - [IJ/AS plugin] Project setup
+* [#4619](https://github.com/apollographql/apollo-kotlin/pull/4619) - [IJ/AS plugin] Initial release umbrella ticket
+* [#4576](https://github.com/apollographql/apollo-kotlin/pull/4576) - Android (JAVA)Apollo subscription only onConnected() is called
+* [#4574](https://github.com/apollographql/apollo-kotlin/pull/4574) - js client requests can fail due to inclusion of apollo specific headers
+* [#4542](https://github.com/apollographql/apollo-kotlin/pull/4542) - Allow supplying something other than suspending functions to core builders
+* [#4530](https://github.com/apollographql/apollo-kotlin/pull/4530) - The POM for com.apollographql.apollo3:apollo-rx3-support-java:jar:3.7.1 is missing, no dependency information available
+* [#4519](https://github.com/apollographql/apollo-kotlin/pull/4519) - Update to SQLDelight 2
+* [#4518](https://github.com/apollographql/apollo-kotlin/pull/4518) - Enforce validation of operation directives
+* [#4516](https://github.com/apollographql/apollo-kotlin/pull/4516) - 🐘 Gradle config: mandate service name
+* [#4504](https://github.com/apollographql/apollo-kotlin/pull/4504) - Allow custom SqlDriver to support multi-platform encryption
+* [#4416](https://github.com/apollographql/apollo-kotlin/pull/4416) - enable configuration cache
+* [#4350](https://github.com/apollographql/apollo-kotlin/pull/4350) - maven-publish doesn't play well with -apollo modules generated when generateApolloMetadata is used
+* [#4325](https://github.com/apollographql/apollo-kotlin/pull/4325) - [Umbrella issue] modernize build system
+* [#4283](https://github.com/apollographql/apollo-kotlin/pull/4283) - [Umbrella issue] Better Java support in Apollo Kotlin
+* [#4205](https://github.com/apollographql/apollo-kotlin/pull/4205) - Validation for custom schema directives
+* [#4171](https://github.com/apollographql/apollo-kotlin/pull/4171) - 🧹 4.0 cleanups
+* [#4160](https://github.com/apollographql/apollo-kotlin/pull/4160) - 🐜 Multiplatform AST parser
+* [#4150](https://github.com/apollographql/apollo-kotlin/pull/4150) - Deprecate dispose() methods and instead implement okio.Closeable
+* [#4062](https://github.com/apollographql/apollo-kotlin/pull/4062) - Deprecate ApolloCompositeException with Error level and use suppressed exceptions instead
+* [#4003](https://github.com/apollographql/apollo-kotlin/pull/4003) - ApolloCall execute / toFlow / exception handling improvements
+* [#3890](https://github.com/apollographql/apollo-kotlin/pull/3890) - Passing executionContext to the platform engine
+* [#3751](https://github.com/apollographql/apollo-kotlin/pull/3751) - Automatic "codegenModels" migration
+* [#3733](https://github.com/apollographql/apollo-kotlin/pull/3733) - @nonull could have surprising effects in error cases
+* [#3694](https://github.com/apollographql/apollo-kotlin/pull/3694) - [umbrella issue] Java Runtime
+* [#3283](https://github.com/apollographql/apollo-kotlin/pull/3283) - Trigger a compilation error on name clashes
+* [#3152](https://github.com/apollographql/apollo-kotlin/pull/3152) - Provide module information (JPMS)
+* [#3143](https://github.com/apollographql/apollo-kotlin/pull/3143) - Implement toString for InputTypes
+* [#2823](https://github.com/apollographql/apollo-kotlin/pull/2823) - Cache and connection restore for Subscription
+* [#2783](https://github.com/apollographql/apollo-kotlin/pull/2783) - ApolloParseException caused by SocketTimeoutError while reading response body
+* [#2765](https://github.com/apollographql/apollo-kotlin/pull/2765) - Subscription switched to DISCONNECTED
+* [#2673](https://github.com/apollographql/apollo-kotlin/pull/2673) - [Compiler] Validate operation directives
+* [#2520](https://github.com/apollographql/apollo-kotlin/pull/2520) - Feature request: Resilient Parsing
+* [#2079](https://github.com/apollographql/apollo-kotlin/pull/2079) - Ktlint should not warn on generated Apollo code
+* [#1692](https://github.com/apollographql/apollo-kotlin/pull/1692) - On the fly code generation
+* [#650](https://github.com/apollographql/apollo-kotlin/pull/650) - Create Android Studio Plugin
+
+
+# Version 4.0.0-rc.2
+
+_2024-07-22_
+
+We're on the road to v4 with this second release candidate which includes a few minor tweaks as well as one new feature.
+
+Note: in v4.0.0-rc.1 `apollo-debug-server` and `apollo-tooling` depended on `com.apollographql.apollo3` artifacts. This is no longer the case with `v4.0.0-rc.2`,
+where all dependencies are under the `com.apollographql.apollo` group id.
+
+## Add memoryCacheOnly (#6049)
+
+`.memoryCacheOnly(true)` can be set on calls to read and store records in the memory cache only even when a persistent cache is configured.
+This can be useful in scenarios where long term storage isn't needed and performance is important.
+
+* [gradle-plugin] Use a better warning for Service.schemaFile users (#6036)
+* [all] Update apollo-kotlin-execution (#6040)
+* [IJ Plugin] Add com.apollographql.apollo:apollo-api-jvm to dependencySupport (#6039)
+* [all] Update to Gradle 8.9 (#6056)
+* [gradle-plugin] Undeprecate schemaFile (#6055)
+* [gradle-plugin] Disable service-loading `ApolloCompilerPlugin` (#6059)
+
+# Version 3.8.5
+
+_2024-07-10_
+
+Version 3.8.5 is a maintenance release. New developments happen in the 4.x versions.
+
+* [all] Bump okio to 3.9.0 (#5868)
+* [runtime] Adding checks for json end_document in http transport (#5894)
+* [runtime] Adding checks for json end_document in http batching interceptors (#5892)
+* [codegen] Fix mapping of the builtin Float scalar type (#6047)
+* [normalized-cache] SqlNormalizedCacheFactory make sqldriver public to support Sqlcipher data encryption. (#5972)
+
+# Version 4.0.0-rc.1
+
+_2024-07-08_
+
+## New package name & evolution policy
+
+We changed the package name from `com.apollographql.apollo3` to `com.apollographql.apollo` for version 4. This is a safe default for the many years to come and works well with our new [evolution policy](https://www.apollographql.com/docs/kotlin/v4/essentials/evolution).
+
+If you are updating from version 3 or an alpha/beta version 4, you need to replace all `com.apollographql.apollo3` with `com.apollographql.apollo`
+
+## Apollo galaxy
+
+As part of this release, some of the non-core artifacts have been moved to separate coordinates and GitHub repositories. Moving forward, this will allow us to iterate faster on those artifacts while keeping the core ones more maintainable.
+
+Some of the existing symbols are kept as deprecated to ease the transition (like `MockServer` for an example). Others (the `-incubating` ones) have been removed, and you need to update them now.
+
+You can read more in the [migration guide](https://go.apollo.dev/ak-moved-artifacts).
+
+## All changes
+
+* [BREAKING][all] Change package name to `com.apollographql.apollo`
+* [BREAKING][all] Remove incubating compose support (#5987)
+* [BREAKING][all] Remove apollo-cli (#5986)
+* [BREAKING][all] Remove incubating normalized cache (#5985)
+* [BREAKING][all] Nullability: Move nullability directives to v0.4 (#6002)
+* [BREAKING][all] Suffix ApolloStore write/publish overloads with `Sync` to avoid them taking precedence over their suspend counterparts (#5976)
+* [NEW][cache] SqlNormalizedCacheFactory make sqldriver public to support Sqlcipher data encryption. (#5973)
+* [NEW][runtime] Add ApolloClient.Builder.retryOnErrorInterceptor (#5989)
+* [adapters] Deprecate apollo-adapters (#6012)
+* [🐘gradle-plugin] Rename the multi-module configurations (#6027)
+* [IJ Plugin] Tweak cache name display for Apollo 3, 4, and incubating (#6026)
+* [compiler] remove unused argument to scalarAdapterInitializer() (#5996)
+* [java] Use published version of the Java support libs (#5991)
+* [runtime] Deprecate apollo engine ktor and publish engine tests (#5988)
+* [mpp-utils] Cleanup mpp utils (#5980)
+* [CI] use `gradle/actions/setup-gradle` instead of `gradle-build-action` (#5981)
+* [infra] Update to develocity API (#5967)
+* [incubating cache] Add a CacheKeyApolloResolver based on ApolloResolver (incubating) (#5970)
+* [mockserver] Robustify TCP server (#5968)
+* [runtime] adding checks for json end_document in http batching interceptors (#5893)
+* [IJ plugin] Cache ApolloKotlinService into project settings (#5962)
+* [IJ plugin] Avoid a ConcurrentModificationException occurring in conjunction to the IJ Platform Gradle plugin. (#5959)
+* [websockets] Send Sec-WebSocket-Protocol (#5948)
+* [mockserver] Deprecate com.apollographql.apollo3.mockserver.MockServer (#5943)
+
+# Version 4.0.0-beta.7
+
+_2024-06-05_
+
+## K2
+
+#5931: This version is built with K2. You will need Kotlin 1.9+ on the JVM to build it and Kotlin 2.0 for other platforms.
+
+## ApolloCompilerPluginProvider
+
+#5865: `ApolloCompilerPluginProvider` is introduced to allow passing arguments to compiler plugins. See the [compiler plugins documentation](https://go.apollo.dev/ak-compiler-plugins) for more details. 
+
+## 👷‍ All changes
+* [testing] Use com.apollographql.mockserver.MockServer (#5939)
+* [testing] Simplify our implementation of runTest (#5935)
+* [testing] Prepare apollo-testing-support to new MockServer (#5934)
+* [runtime] Remove multidex library (#5930)
+* [all] Bump languageVersion/apiVersion to Kotlin 2.0 (#5931)
+* [codegen] fix mapping of the builtin Float type (#5928)
+* [IJ Plugin] Add inspection to warn about the presence of a GraphQL config file (#5908)
+* [codegen] Add a null-check to java enum safeValueOf (#5904)
+* [gradle-plugin] Remove eager configuration (#5923)
+* [gradle-plugin] sort input files (#5919)
+* [IJ Plugin] Suppress GraphQLDuplicateDirective for certain directives (#5910)
+* [adapters] Add KtorHttpUrlAdapter (#5915)
+* [IJ Plugin] Add a "new UI" compatible icon (#5906)
+* [IJ Plugin] Operation and fragment definition rename (#5912)
+* [IJ Plugin] Add @link directives to extra.graphqls during v3->v4 migration (#5909)
+* [IJ Plugin] Remove GraphQL IJ plugin issue workaround (#5907)
+* [cache] Pagination: use "field key" instead of "field name" (#5898)
+* [IJ Plugin] Improve the presentation of GraphQL elements when navigating to them (#5900)
+* [IJ Plugin] Include subfolders when contributing GraphQL config (#5871)
+* [runtime] Remove existing interceptors from ApolloClient.Builder before adding new ones (#5858)
+* [codegen] Add ApolloCompilerPluginProvider  (#5865)
+* [runtime] Clear current ApolloStore related interceptors when calling `.store()` on builder (#5857)
+* [cache] Call through to loadRecords from the MemoryCache to the SQL one (#5848)
+* [runtime] deprecate operationIdGenerator (#5850)
+
+# Version 3.8.4
+
+_2024-04-29_
+
+Version 3.8.4 is a maintenance release with one bug fix and 2 performance improvements. New developments happen in the 4.x versions.
+
+* [java-runtime] Fix `ApolloClient.Builder.okHttpClient()` returns null instead of this (#5860)
+* [normalized-cache] Use a single transaction when using MemoryCache chaining (#5861)
+* [normalized-cache] Call through to loadRecords from the MemoryCache to the SQL one (#5863)
+
+# Version 4.0.0-beta.6
+
+_2024-04-23_
+
+## SQL cache performance improvements
+
+If you're using a chained memory + SQL cache, #5840 makes sure cache writes are wrapped in a transaction, making them much faster.
+
+## Apollo Compiler Plugins
+
+`Plugin` is renamed to `ApolloCompilerPlugin`. There is a new `documentTransform` API as well as other fixes. More details in the [compiler plugins documentation](https://www.apollographql.com/docs/kotlin/v4/advanced/compiler-plugins).
+
+## Experimental WebSockets
+
+A new `.websocket` package is available that makes it easier to retry WebSockets and handle errors. More details and migration guide in the [experimental websockets documentation](https://www.apollographql.com/docs/kotlin/v4/advanced/experimental-websockets).
+
+## ApolloIdlingResource is deprecated
+
+We recommend using reactive patterns to test your UI instead. See [this article about ways to do so](https://medium.com/androiddevelopers/alternatives-to-idling-resources-in-compose-tests-8ae71f9fc473).
+
+## Removed androidx.startup dependency
+
+androidx.startup was introduced in beta.5 but is problematic for unit tests and other cases. beta.6 removes that dependency. More details in the [network connectivity documentation](https://www.apollographql.com/docs/kotlin/v4/advanced/network-connectivity).
+
+##  WasmJS support for apollo-adapter
+
+You can see Wasm in action at https://wasm.confetti-app.dev/ 
+
+##  Threading changes
+
+In a effort to minimize the number of thread switches, the whole request is now run in the same dispatcher. See [Threading.md](https://github.com/apollographql/apollo-kotlin/blob/39d76630277476004bbaed0e3a897feb5a959084/design-docs/Threading.md) for more details.
+
+## Contributors 💙
+
+Many thanks to @joreilly, @ychescale9 and @japhib for their contributions to this release 💙!
+
+## 👷‍ All changes
+* [normalized-cache]: use a single SQL transaction when using MemoryCache chaining (#5840)
+* [compiler] expose apollo-ast as an api dependency (#5838)
+* [compiler] Rename `Plugin` to `ApolloCompilerPlugin` and add error message for bad configurations (#5821)
+* [IJ Plugin] Fix pulling file from device not working on AS Koala (#5822)
+* [compiler] Add `@ApolloEnumConstructor` and make enum as sealed class Unknown constructor opt-in (#5813)
+* [runtime] Move ApolloParseException to ApolloNetworkException (#5816)
+* [normalized-cache] Let isFromCache be about the ApolloResponse (#5805)
+* [compiler] Add DocumentTransform API (#5809)
+* [idling-resource] Deprecate ApolloIdlingResource (#5817, #5764)
+* [runtime] Share the default OkHttpBuilder (#5811)
+* [runtime] [BREAKING] change `isOnline` to a suspend fun
+* [adapters] Support Kotlin/Wasm for apollo-adapters (#5803)
+* [all] Bump Kotlin to 2.0.0-RC1 (#5802)
+* [Codegen] Add CompiledArgumentDefinition (#5797, #5837)
+* [runtime] Merge experimental WebSocketNetworkTransport in apollo-runtime (#5790)
+* [normalized-cache] Cache pagination: add FieldNameGenerator and EmbeddedFieldsProvider (#5772)
+* [runtime] Support configuring `ApolloClient` with lazily initialized `Call.Factory`. (#5784)
+* [runtime] fix ApolloClient.Builder.okHttpClient() returns null instead of this (#5778)
+* [normalized-cache] Fix variable coercion in lists. Absent variables are coerced to null (#5773)
+* [IJ Plugin] Fix an NPE (#5770)
+* [runtime] Simplify ApolloCall (#5765)
+* [runtime] remove `androidx.startup` dependency (#5761, #5720)
+* [compiler] Bump kotlin_labs definitions to v0.3 (#5762)
+* [Pagination] Support nodes in Connection types (#5754)
+* [compiler] Directive validation is now enforced by default (#5758)
+* [cache] Make ApolloStore.publish() suspend (#5755)
+* [runtime] Change the dispatcher earlier in the chain (#4319)
+* [IJ Plugin] Add an advanced setting to include generated code references in GraphQL "Go To Declaration" (#5743)
+* [IJ Plugin] Fix presentation of Kotlin elements when navigating to them from GraphQL (#5739)
+* [IJ Plugin] Consider all Gradle projects recursively (#5734)
+* [runtime] Deprecate ApolloClient.Builder.addInterceptors() (#5733)
+* [all] use jdk-release (#5731)
+* [http-cache] Ignore IOException when calling ApolloHttpCache.remove (#5729)
+* [IJ plugin] Bump platformVersion and pluginSinceBuild from 232 to 233 (#5726)
+* [runtime] add ApolloClient.failFastIfOffline (#5725)
+* [all] Introduce "filesystem" sourceSet and use okio 3.9.0 (#5719)
+* [runtime] Do not use Ktor in Js HttpEngine, use fetch directly instead (#5702)
+
+# Version 3.8.3
+
+_2024-03-20_
+
+Version 3.8.3 is a maintenance release with two new convenience APIs and a Kotlin update. New developments happen in the 4.x versions.
+
+Note: because Apollo Kotlin now depends on kotlin-stdlib version 1.9, you need the 1.8+ Kotlin compiler to compile your project.
+
+* [all] update Kotlin to 1.9 (#5412)
+* [runtime] Add `ApolloClient.Builder(ApolloHttpCache)` (#5638) (#5640)
+* [runtime] Allow `buildPostBody` to write operation extensions (#5631)
+* [runtime] compose support: Catch exceptions and expose them in `.exception` (#5018)
+* [http-cache] Ignore `IOException` when calling `ApolloHttpCache.remove` (#5730)
+* [all] Add deprecations on symbols that are getting removed in v4 (#5746)
+
+# Version 4.0.0-beta.5
+
+_2024-03-12_
+
+Main changes:
+
+* **Apollo compiler plugins**: The GraphQL compiler now has APIs that you can use to customize the generated code. This can be used for changing visibility of some symbols, renaming them or more generally customizing the output for any advanced use cases. Moving forward, Apollo compiler plugins are the preferred way to customize operation IDs as well as package names and both `PackageNameGenerator` and `OperationOutputGenerator` are deprecated. See the [documentation page about Apollo compiler plugins](https://www.apollographql.com/docs/kotlin/v4/advanced/compiler-plugins) for more details.
+* **Reduced lock contention in apollo-normalized-cache-incubating**: the incubating normalized cache now uses lock-free memory structures inspired by guava and [MobileNativeFoundation/Store](https://github.com/MobileNativeFoundation/Store/). We have seen improvements by up to 20% in some scenarios. Please share your numbers if you notice any positive (or negative) change. 
+* **Nullability directives**: The version of the supported nullability directives was bumped from 0.1 to 0.3 (See [apollographql/specs#42](https://github.com/apollographql/specs/pull/42) and [apollographql/specs#48](https://github.com/apollographql/specs/pull/48)). If you are using `@semanticNonNull` or `@catch` you should bump your `@link` directives to use `0.3`. See the [nullability documentation page](https://www.apollographql.com/docs/kotlin/v4/advanced/nullability) for more details.
+* **New snapshot repository for the IntelliJ/Android Studio plugin**: The repository to use for the weekly snapshots has changed. You can now use `https://go.apollo.dev/ij-plugin-snapshots` to get the latest weekly snapshots. ([#5600](https://github.com/apollographql/apollo-kotlin/pull/5600))
+* **Multi-version KDoc**: The [published KDoc](https://www.apollographql.com/docs/kotlin/kdoc/index.html) now includes both v3 and v4 versions.
+
+Many thanks to @ribafish, @molundb, @mboyd1993, @rohandhruva and @baconz for their help in this release 💙!
+
+## 👷‍ All changes
+* [mockserver] Add MockServer.enqueueError() and MockServer.assertNoRequest() ([#5694](https://github.com/apollographql/apollo-kotlin/pull/5694))
+* [runtime] Implement NetworkMonitor for apple platforms ([#5691](https://github.com/apollographql/apollo-kotlin/pull/5691))
+* [runtime] Add `NetworkMonitor` ([#5690](https://github.com/apollographql/apollo-kotlin/pull/5690))
+* [runtime] Add `ApolloClient.retryOnError(Boolean)` ([#5685](https://github.com/apollographql/apollo-kotlin/pull/5685))
+* [websockets-network-transport-incubating] Publish apollo-websocket-network-transport-incubating ([#5693](https://github.com/apollographql/apollo-kotlin/pull/5693))
+* [normalized-cache-incubating] Use Store Cache and merge optimistic cache with Memory cache ([#5651](https://github.com/apollographql/apollo-kotlin/pull/5651))
+* [runtime] Fix ApolloClient.Builder if the Builder is mutated by the caller after calling build() ([#5683](https://github.com/apollographql/apollo-kotlin/pull/5683))
+* [websockets-network-transport-incubating] Introduce incubating WebSocketNetworkTransport ([#5678](https://github.com/apollographql/apollo-kotlin/pull/5678))
+* [websockets-network-transport-incubating] Introduce incubating WebSocketEngine ([#5676](https://github.com/apollographql/apollo-kotlin/pull/5676))
+* [runtime] Don't assume a single emission in AutoPersistedQueryInterceptor ([#5677](https://github.com/apollographql/apollo-kotlin/pull/5677))
+* [runtime] Use expect funs instead of expect classes for DefaultHttpEngine ([#5672](https://github.com/apollographql/apollo-kotlin/pull/5672))
+* [runtime] Fix JS websocket throws an ISE on error on Safari and Firefox ([#5670](https://github.com/apollographql/apollo-kotlin/pull/5670))
+* [runtime] Use the streaming HttpEngine by default on Apple ([#5671](https://github.com/apollographql/apollo-kotlin/pull/5671))
+* [intellij-plugin] Only send telemetry for Apollo Kotlin projects ([#5663](https://github.com/apollographql/apollo-kotlin/pull/5663))
+* [gradle-plugin] Use Gradle normalization instead of ours ([#5636](https://github.com/apollographql/apollo-kotlin/pull/5636))
+* [execution] Fix converting int and floats to their Kotlin value ([#5637](https://github.com/apollographql/apollo-kotlin/pull/5637))
+* [runtime] Add ApolloClient.Builder(ApolloHttpCache) ([#5638](https://github.com/apollographql/apollo-kotlin/pull/5638))
+* [gradle-plugin] Use com.android.lint Gradle rules ([#5639](https://github.com/apollographql/apollo-kotlin/pull/5639))
+* [all] Update coroutines to 1.8.0 ([#5626](https://github.com/apollographql/apollo-kotlin/pull/5626))
+* [runtime] Allow buildPostBody to write operation extensions ([#5630](https://github.com/apollographql/apollo-kotlin/pull/5630))
+* [compiler] Add support for @catch on fieldDefinitions, interfaces and objects ([#5623](https://github.com/apollographql/apollo-kotlin/pull/5623))
+* [all] Bump Kotlin to 2.0.0-Beta4 ([#5624](https://github.com/apollographql/apollo-kotlin/pull/5624))
+* [normalized-cache-incubating] Cache lock changes ([#5608](https://github.com/apollographql/apollo-kotlin/pull/5608))
+* [rx-support] Keep rx-support as DeprecationLevel.Error ([#5610](https://github.com/apollographql/apollo-kotlin/pull/5610))
+* [gradle-plugin] Add dependsOn(dependencyNotation, bidirectional) ([#5606](https://github.com/apollographql/apollo-kotlin/pull/5606))
+* [gradle-plugin] Fix a regression in alwaysGenerateTypesMatching where all types would be generated by default ([#5605](https://github.com/apollographql/apollo-kotlin/pull/5605))
+* [️compiler] Add Apollo compiler plugin API ([#5604](https://github.com/apollographql/apollo-kotlin/pull/5604), [#5599](https://github.com/apollographql/apollo-kotlin/pull/5599), [#5591](https://github.com/apollographql/apollo-kotlin/pull/5591), [#5589](https://github.com/apollographql/apollo-kotlin/pull/5589), [#5588](https://github.com/apollographql/apollo-kotlin/pull/5588), [#5582](https://github.com/apollographql/apollo-kotlin/pull/5582), [#5573](https://github.com/apollographql/apollo-kotlin/pull/5573), [#5561](https://github.com/apollographql/apollo-kotlin/pull/5561), [#5560](https://github.com/apollographql/apollo-kotlin/pull/5560), [#5557](https://github.com/apollographql/apollo-kotlin/pull/5557), [#5556](https://github.com/apollographql/apollo-kotlin/pull/5556), [#5554](https://github.com/apollographql/apollo-kotlin/pull/5554), [#5516](https://github.com/apollographql/apollo-kotlin/pull/5516), [#5589](https://github.com/apollographql/apollo-kotlin/pull/5589))
+* [intellij-plugin] Publish the IJ plugin snapshots to the JetBrain Marketplace ([#5600](https://github.com/apollographql/apollo-kotlin/pull/5600))
+* [runtime] HTTP Headers: remove `X-APOLLO-OPERATION-NAME`, `X-APOLLO-OPERATION-ID` and the multipart boundary ([#5533](https://github.com/apollographql/apollo-kotlin/pull/5533))
+* [gradle-plugin] use Worker API and ServiceLoader ([#5590](https://github.com/apollographql/apollo-kotlin/pull/5590))
+* [gradle-plugin] deprecate schemaFile and sourceFolder ([#5581](https://github.com/apollographql/apollo-kotlin/pull/5581))
+* [gradle-plugin] configuration cache and lazy properties for schema files ([#5580](https://github.com/apollographql/apollo-kotlin/pull/5580))
+* [️compiler] Track semanticNonNull spec ([#5577](https://github.com/apollographql/apollo-kotlin/pull/5577))
+* [gradle-plugin] bump minimum required Gradle version to 8.0 ([#5579](https://github.com/apollographql/apollo-kotlin/pull/5579))
+* [ast] Validate repeatable directives ([#5574](https://github.com/apollographql/apollo-kotlin/pull/5574))
+* [compiler] Don't automatically add key fields to union selections ([#5562](https://github.com/apollographql/apollo-kotlin/pull/5562))
+* [runtime] Fix disabling batching by default ([#5552](https://github.com/apollographql/apollo-kotlin/pull/5552))
+* [gradle-plugin] Select all types in pre-introspection query ([#5547](https://github.com/apollographql/apollo-kotlin/pull/5547))
+* [normalized-cache-api] Remove unnecessary suspend from ApolloStore functions ([#5541](https://github.com/apollographql/apollo-kotlin/pull/5541))
+* [all] One more step towards K2 but blocked on https://youtrack.jetbrains.com/issue/KT-21846 ([#5536](https://github.com/apollographql/apollo-kotlin/pull/5536))
+* [all] Target Java17 for Android .aars and Java11 for apollo-gradle-plugin.jar ([#5534](https://github.com/apollographql/apollo-kotlin/pull/5534))
+* [compiler] Remove old `generateAsInternal` code ([#5526](https://github.com/apollographql/apollo-kotlin/pull/5526))
+* [compiler] Lock down apollo-compiler API ([#5524](https://github.com/apollographql/apollo-kotlin/pull/5524))
+* [normalized-cache-sqlite] Use windowSizeBytes argument of AndroidSqliteDriver ([#5523](https://github.com/apollographql/apollo-kotlin/pull/5523))
+* [intellij-plugin] Strip Apollo client directives before executing operations ([#5517](https://github.com/apollographql/apollo-kotlin/pull/5517))
+* [execution] Fix converting GraphQL Float values to Kotlin ([#5511](https://github.com/apollographql/apollo-kotlin/pull/5511))
+* [intellij-plugin] Don't show a visible task with progress bar while fetching the Apollo Conf ([#5501](https://github.com/apollographql/apollo-kotlin/pull/5501))
+* [intellij-plugin] Inspection: missing directive import ([#5494](https://github.com/apollographql/apollo-kotlin/pull/5494))
+* [intellij-plugin] Use recent version of slf4j to avoid a classloader issue ([#5495](https://github.com/apollographql/apollo-kotlin/pull/5495))
+* [normalized-cache-sqlite] Allow custom SupportSQLiteOpenHelper.Callback in the SqlNormalizedCacheFactory ([#5488](https://github.com/apollographql/apollo-kotlin/pull/5488))
+* [mockserver] Allow to set the content-type of String responses ([#5489](https://github.com/apollographql/apollo-kotlin/pull/5489))
+* [debug-server] Start LocalServerSocket on background thread, and handle exception ([#5493](https://github.com/apollographql/apollo-kotlin/pull/5493))
+* [cli-incubating] Publish apollo-cli-incubating again ([#5486](https://github.com/apollographql/apollo-kotlin/pull/5486))
+* [intellij-plugin] Don't suggest v4 migration until it is stable ([#5477](https://github.com/apollographql/apollo-kotlin/pull/5477))
+* [tooling] bump version of Apollo to `4.0.0-beta.3` ([#5452](https://github.com/apollographql/apollo-kotlin/pull/5452))
+* [debug-server] Don't crash if ApolloDebugServerInitializer is not run (e.g. in unit tests) ([#5484](https://github.com/apollographql/apollo-kotlin/pull/5484))
+* [intellij-plugin] Add debugging logs around the cache viewer ([#5475](https://github.com/apollographql/apollo-kotlin/pull/5475))
+* [debug-server] Debug server: don't crash when a client has no caches ([#5479](https://github.com/apollographql/apollo-kotlin/pull/5479))
+* [gradle-plugin] add apollo.deps ([#5460](https://github.com/apollographql/apollo-kotlin/pull/5460))
+
 # Version 4.0.0-beta.4
 
 _2023-12-12_
@@ -840,7 +1523,7 @@ fun LaunchList(onLaunchClick: (launchId: String) -> Unit) {
 ```
 
 As always, feedback is very welcome. Let us know what you think of the feature by
-either [opening an issue on our GitHub repo](https://github.com/apollographql/apollo-android/issues)
+either [opening an issue on our GitHub repo](https://github.com/apollographql/apollo-kotlin/issues)
 , [joining the community](http://community.apollographql.com/new-topic?category=Help&tags=mobile,client)
 or [stopping by our channel in the KotlinLang Slack](https://app.slack.com/client/T09229ZC6/C01A6KM1SBZ)(get your
 invite [here](https://slack.kotl.in/)).
@@ -1302,7 +1985,7 @@ apolloClient.query(query).toFlow().collectIndexed { index, response ->
 You can read more about it in [the documentation](https://www.apollographql.com/docs/kotlin/fetching/defer).
 
 As always, feedback is very welcome. Let us know what you think of the feature by
-either [opening an issue on our GitHub repo](https://github.com/apollographql/apollo-android/issues)
+either [opening an issue on our GitHub repo](https://github.com/apollographql/apollo-kotlin/issues)
 , [joining the community](http://community.apollographql.com/new-topic?category=Help&tags=mobile,client)
 or [stopping by our channel in the KotlinLang Slack](https://app.slack.com/client/T09229ZC6/C01A6KM1SBZ)(get your
 invite [here](https://slack.kotl.in/)).
@@ -2148,7 +2831,7 @@ In a nutshell, Apollo Kotlin 3 brings:
   time, so you don't have to deal with them in your UI code
 
 Feel free to ask questions by
-either [opening an issue on our GitHub repo](https://github.com/apollographql/apollo-android/issues)
+either [opening an issue on our GitHub repo](https://github.com/apollographql/apollo-kotlin/issues)
 , [joining the community](http://community.apollographql.com/new-topic?category=Help&tags=mobile,client)
 or [stopping by our channel in the KotlinLang Slack](https://app.slack.com/client/T09229ZC6/C01A6KM1SBZ)(get your
 invite [here](https://slack.kotl.in/)).
@@ -2249,7 +2932,7 @@ apolloClient = ApolloClient.Builder()
 _2021-12-07_
 
 This version is the release candidate for Apollo Android 3 🚀. Please try it
-and [report any issues](https://github.com/apollographql/apollo-android/issues/new/choose), we'll fix them urgently.
+and [report any issues](https://github.com/apollographql/apollo-kotlin/issues/new/choose), we'll fix them urgently.
 
 There is [documentation](https://www.apollographql.com/docs/android/) and
 a [migration guide](https://www.apollographql.com/docs/android/migration/3.0/). More details are coming soon. In a

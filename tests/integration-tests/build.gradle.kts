@@ -1,6 +1,8 @@
+import com.apollographql.apollo.compiler.MANIFEST_PERSISTED_QUERY
+
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -11,16 +13,14 @@ kotlin {
       dependencies {
         implementation(libs.apollo.api)
         implementation(libs.apollo.normalizedcache)
-        implementation(libs.apollo.adapters)
         implementation(libs.apollo.runtime)
       }
     }
 
     findByName("commonTest")?.apply {
       dependencies {
-        implementation(libs.apollo.adapters)
-        implementation(libs.apollo.mockserver)
         implementation(libs.apollo.testingsupport)
+        implementation(libs.apollo.mockserver)
         implementation(libs.kotlinx.coroutines)
         implementation(libs.kotlinx.serialization.json)
         implementation(libs.kotlinx.coroutines.test)
@@ -28,9 +28,16 @@ kotlin {
       }
     }
 
+    findByName("concurrentTest")?.apply {
+      dependencies {
+        implementation(libs.apollo.normalizedcache.sqlite)
+      }
+    }
+
     findByName("jvmTest")?.apply {
       dependencies {
         implementation(libs.okhttp.logging)
+        implementation(libs.slf4j.simple)
       }
     }
   }
@@ -39,30 +46,35 @@ kotlin {
 fun configureApollo(generateKotlinModels: Boolean) {
   val extra = if (generateKotlinModels) "kotlin" else "java"
 
-  configure<com.apollographql.apollo3.gradle.api.ApolloExtension> {
-    file("src/main/graphql/com/apollographql/apollo3/integration").listFiles()!!
+  configure<com.apollographql.apollo.gradle.api.ApolloExtension> {
+    file("src/main/graphql/com/apollographql/apollo/integration").listFiles()!!
         .filter { it.isDirectory }
         .forEach {
           service("${it.name}-$extra") {
             when (it.name) {
               "httpcache" -> {
-                generateOperationOutput.set(true)
-                mapScalar("Date", "kotlinx.datetime.LocalDate")
+                operationManifestFormat.set(MANIFEST_PERSISTED_QUERY)
+                if (generateKotlinModels) {
+                  mapScalarToKotlinString("Date")
+                } else {
+                  mapScalarToJavaString("Date")
+                }
               }
 
               "upload" -> {
                 operationManifestFormat.set("persistedQueryManifest")
-                mapScalar("Upload", "com.apollographql.apollo3.api.Upload")
+                mapScalar("Upload", "com.apollographql.apollo.api.Upload")
               }
 
               "normalizer" -> {
                 generateFragmentImplementations.set(true)
-                mapScalar("Date", "kotlinx.datetime.LocalDate")
                 if (generateKotlinModels) {
+                  mapScalarToKotlinString("Date")
+                  mapScalarToKotlinString("Instant")
                   sealedClassesForEnumsMatching.set(listOf("Episode"))
-                  mapScalar("Instant", "kotlinx.datetime.Instant", "com.apollographql.apollo3.adapter.KotlinxInstantAdapter")
                 } else {
-                  mapScalar("Instant", "kotlinx.datetime.Instant", "com.apollographql.apollo3.adapter.KotlinxInstantAdapter.INSTANCE")
+                  mapScalarToJavaString("Date")
+                  mapScalarToJavaString("Instant")
                 }
               }
 
@@ -71,13 +83,12 @@ fun configureApollo(generateKotlinModels: Boolean) {
               }
             }
 
-            srcDir(file("src/main/graphql/com/apollographql/apollo3/integration/${it.name}/"))
-            packageName.set("com.apollographql.apollo3.integration.${it.name}")
+            srcDir(file("src/main/graphql/com/apollographql/apollo/integration/${it.name}/"))
+            packageName.set("com.apollographql.apollo.integration.${it.name}")
             codegenModels.set("operationBased")
             this.generateKotlinModels.set(generateKotlinModels)
             generateOptionalOperationVariables.set(false)
             configureConnection(generateKotlinModels)
-            languageVersion.set("1.5")
           }
         }
     file("src/commonTest/kotlin/test").listFiles()!!
@@ -100,13 +111,12 @@ fun configureApollo(generateKotlinModels: Boolean) {
             packageName.set(it.name)
             generateOptionalOperationVariables.set(false)
             configureConnection(generateKotlinModels)
-            languageVersion.set("1.5")
           }
         }
   }
 }
 
-fun com.apollographql.apollo3.gradle.api.Service.configureConnection(generateKotlinModels: Boolean) {
+fun com.apollographql.apollo.gradle.api.Service.configureConnection(generateKotlinModels: Boolean) {
   outputDirConnection {
     if (generateKotlinModels) {
       connectToKotlinSourceSet("commonTest")

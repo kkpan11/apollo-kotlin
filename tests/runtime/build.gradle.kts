@@ -1,6 +1,8 @@
+import com.apollographql.apollo.annotations.ApolloExperimental
+
 plugins {
   id("org.jetbrains.kotlin.jvm")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -8,7 +10,8 @@ apolloTest()
 dependencies {
   implementation(libs.apollo.runtime)
   implementation(project(":sample-server"))
-  implementation(libs.apollo.testingsupport)
+  testImplementation(libs.apollo.testingsupport)
+  testImplementation(libs.apollo.mockserver)
   testImplementation(libs.kotlin.test)
   testImplementation(libs.junit)
   testImplementation(libs.okhttp)
@@ -16,8 +19,9 @@ dependencies {
 
 apollo {
   service("service") {
+    @OptIn(ApolloExperimental::class)
     generateDataBuilders.set(true)
     packageName.set("com.example")
-    schemaFile.set(file("../sample-server/src/main/resources/schema.graphqls"))
+    schemaFiles.from(file("../sample-server/src/main/resources/schema.graphqls"))
   }
 }

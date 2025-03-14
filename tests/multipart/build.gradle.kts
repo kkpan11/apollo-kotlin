@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -16,6 +16,8 @@ kotlin {
     findByName("commonTest")?.apply {
       dependencies {
         implementation(libs.apollo.testingsupport)
+        implementation(libs.apollo.mockserver)
+        implementation(libs.turbine)
       }
     }
   }
@@ -24,11 +26,11 @@ kotlin {
 
 apollo {
   service("mockserver") {
-    sourceFolder.set("mockserver")
+    srcDir("src/commonMain/graphql/mockserver")
     packageName.set("multipart")
   }
   service("router") {
-    sourceFolder.set("router")
+    srcDir("src/commonMain/graphql/router")
     packageName.set("router")
   }
 }

@@ -1,6 +1,6 @@
 package com.apollographql.ijplugin.gradle
 
-import com.apollographql.apollo3.gradle.api.ApolloGradleToolingModel
+import com.apollographql.apollo.gradle.api.ApolloGradleToolingModel
 import com.apollographql.ijplugin.project.ApolloProjectListener
 import com.apollographql.ijplugin.project.ApolloProjectService
 import com.apollographql.ijplugin.project.apolloProjectService
@@ -9,17 +9,14 @@ import com.apollographql.ijplugin.settings.ProjectSettingsState
 import com.apollographql.ijplugin.settings.projectSettingsState
 import com.apollographql.ijplugin.telemetry.telemetryService
 import com.apollographql.ijplugin.util.dispose
+import com.apollographql.ijplugin.util.executeOnPooledThread
 import com.apollographql.ijplugin.util.isNotDisposed
 import com.apollographql.ijplugin.util.logd
 import com.apollographql.ijplugin.util.logw
 import com.apollographql.ijplugin.util.newDisposable
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
@@ -31,7 +28,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import org.gradle.tooling.CancellationTokenSource
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
-import org.jetbrains.kotlin.idea.configuration.GRADLE_SYSTEM_ID
+import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
@@ -44,7 +41,8 @@ class GradleToolingModelService(
 
   private var fetchToolingModelsTask: FetchToolingModelsTask? = null
 
-  var apolloKotlinServices: List<ApolloKotlinService> = emptyList()
+  var apolloKotlinServices: List<ApolloKotlinService> = project.projectSettingsState.apolloKotlinServices
+    private set
 
   init {
     logd("project=${project.name}")
@@ -52,6 +50,12 @@ class GradleToolingModelService(
     startOrStopObserveGradleHasSynced()
     startOrAbortFetchToolingModels()
     startObserveSettings()
+
+    if (shouldFetchToolingModels()) {
+      // Contribute immediately, even though the ApolloKotlinServices are not available yet. They will be contributed later when available.
+      // This avoids falling back to the default schema discovery of the GraphQL plugin which can be problematic (see https://github.com/apollographql/apollo-kotlin/issues/6219)
+      project.messageBus.syncPublisher(ApolloKotlinServiceListener.TOPIC).apolloKotlinServicesAvailable()
+    }
   }
 
   private fun startObserveApolloProject() {
@@ -105,7 +109,8 @@ class GradleToolingModelService(
       private var contributeConfigurationToGraphqlPlugin: Boolean = project.projectSettingsState.contributeConfigurationToGraphqlPlugin
 
       override fun settingsChanged(projectSettingsState: ProjectSettingsState) {
-        val contributeConfigurationToGraphqlPluginChanged = contributeConfigurationToGraphqlPlugin != projectSettingsState.contributeConfigurationToGraphqlPlugin
+        val contributeConfigurationToGraphqlPluginChanged =
+          contributeConfigurationToGraphqlPlugin != projectSettingsState.contributeConfigurationToGraphqlPlugin
         contributeConfigurationToGraphqlPlugin = projectSettingsState.contributeConfigurationToGraphqlPlugin
         logd("contributeConfigurationToGraphqlPluginChanged=$contributeConfigurationToGraphqlPluginChanged")
         if (contributeConfigurationToGraphqlPluginChanged) {
@@ -136,7 +141,7 @@ class GradleToolingModelService(
       return
     }
 
-    fetchToolingModelsTask = FetchToolingModelsTask().also { ApplicationManager.getApplication().executeOnPooledThread(it) }
+    fetchToolingModelsTask = FetchToolingModelsTask().also { executeOnPooledThread { it.run() } }
   }
 
   private inner class FetchToolingModelsTask : Runnable {
@@ -154,14 +159,15 @@ class GradleToolingModelService(
     private fun doRun() {
       logd()
       val rootProjectPath = project.getGradleRootPath() ?: return
-      val gradleExecutionHelper = GradleExecutionHelperCompat()
-      val executionSettings = ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(project, rootProjectPath, GradleConstants.SYSTEM_ID)
+      val gradleExecutionHelper = GradleExecutionHelper()
+      val executionSettings =
+        ExternalSystemApiUtil.getExecutionSettings<GradleExecutionSettings>(project, rootProjectPath, GradleConstants.SYSTEM_ID)
       val rootGradleProject = gradleExecutionHelper.execute(rootProjectPath, executionSettings) { connection ->
         gradleCancellation = GradleConnector.newCancellationTokenSource()
         logd("Fetch Gradle project model")
         return@execute try {
-          val id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project)
-          gradleExecutionHelper.getModelBuilder(GradleProject::class.java, connection, id, executionSettings, ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT)
+          connection.model<GradleProject>(GradleProject::class.java)
+              .setJavaHome(executionSettings.javaHome?.let { File(it) })
               .withCancellationToken(gradleCancellation!!.token())
               .get()
         } catch (t: Throwable) {
@@ -174,30 +180,30 @@ class GradleToolingModelService(
       project.telemetryService.gradleModuleCount = rootGradleProject.children.size + 1
 
       // We're only interested in projects that apply the Apollo plugin - and thus have the codegen task registered
-      val allApolloGradleProjects: List<GradleProject> = (rootGradleProject.children + rootGradleProject)
+      val allApolloGradleProjects: List<GradleProject> = rootGradleProject.allChildrenRecursively()
           .filter { gradleProject -> gradleProject.tasks.any { task -> task.name == CODEGEN_GRADLE_TASK_NAME } }
-      logd("allApolloGradleProjects=${allApolloGradleProjects.map { it.name }}")
+      logd("allApolloGradleProjects=${allApolloGradleProjects.map { it.path }}")
       project.telemetryService.apolloKotlinModuleCount = allApolloGradleProjects.size
 
       val allToolingModels = allApolloGradleProjects.mapIndexedNotNull { index, gradleProject ->
         if (isAbortRequested()) return@doRun
         gradleExecutionHelper.execute(gradleProject.projectDirectory.canonicalPath, executionSettings) { connection ->
           gradleCancellation = GradleConnector.newCancellationTokenSource()
-          logd("Fetch tooling model for :${gradleProject.name}")
+          logd("Fetch tooling model for ${gradleProject.path}")
           return@execute try {
-            val id = ExternalSystemTaskId.create(GRADLE_SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, project)
-            gradleExecutionHelper.getModelBuilder(ApolloGradleToolingModel::class.java, connection, id, executionSettings, ExternalSystemTaskNotificationListenerAdapter.NULL_OBJECT)
+            connection.model<ApolloGradleToolingModel>(ApolloGradleToolingModel::class.java)
+                .setJavaHome(executionSettings.javaHome?.let { File(it) })
                 .withCancellationToken(gradleCancellation!!.token())
                 .get()
                 .takeIf {
                   val isCompatibleVersion = it.versionMajor == ApolloGradleToolingModel.VERSION_MAJOR
                   if (!isCompatibleVersion) {
-                    logw("Incompatible version of Apollo Gradle plugin in module :${gradleProject.name}: ${it.versionMajor} != ${ApolloGradleToolingModel.VERSION_MAJOR}, ignoring")
+                    logw("Incompatible version of Apollo Gradle plugin in module ${gradleProject.path}: ${it.versionMajor} != ${ApolloGradleToolingModel.VERSION_MAJOR}, ignoring")
                   }
                   isCompatibleVersion
                 }
           } catch (t: Throwable) {
-            logw(t, "Couldn't fetch tooling model for :${gradleProject.name}")
+            logw(t, "Couldn't fetch tooling model for ${gradleProject.path}")
             null
           } finally {
             gradleCancellation = null
@@ -228,28 +234,31 @@ class GradleToolingModelService(
 
   private fun computeApolloKotlinServices(toolingModels: List<ApolloGradleToolingModel>) {
     // Compute the ApolloKotlinServices, taking into account the dependencies between projects
-    val allKnownProjectNames = toolingModels.map { it.projectName }
+    val allKnownProjectPaths = toolingModels.map { it.projectPathCompat }
     val projectServiceToApolloKotlinServices = mutableMapOf<String, ApolloKotlinService>()
-    fun getApolloKotlinService(projectName: String, serviceName: String): ApolloKotlinService {
-      val key = "$projectName/$serviceName"
+
+    fun getApolloKotlinService(projectPath: String, serviceName: String): ApolloKotlinService {
+      val key = "$projectPath/$serviceName"
       return projectServiceToApolloKotlinServices.getOrPut(key) {
-        val toolingModel = toolingModels.first { it.projectName == projectName }
+        val toolingModel = toolingModels.first { it.projectPathCompat == projectPath }
         val serviceInfo = toolingModel.serviceInfos.first { it.name == serviceName }
-        val dependenciesProjectFiles = serviceInfo.upstreamProjects
+        val upstreamApolloKotlinServices = serviceInfo.upstreamProjectPathsCompat(toolingModel)
             // The tooling model for some upstream projects might not have been fetched successfully - filter them out
-            .filter { upstreamProject -> upstreamProject in allKnownProjectNames }
-            .map { getApolloKotlinService(it, serviceName) }
+            .filter { upstreamProjectPath -> upstreamProjectPath in allKnownProjectPaths }
+            .map { upstreamProjectPath -> getApolloKotlinService(upstreamProjectPath, serviceName) }
         ApolloKotlinService(
-            gradleProjectName = projectName,
+            gradleProjectPath = projectPath,
             serviceName = serviceName,
             schemaPaths = (serviceInfo.schemaFiles.mapNotNull { it.toProjectLocalPathOrNull() } +
-                dependenciesProjectFiles.flatMap { it.schemaPaths })
+                upstreamApolloKotlinServices.flatMap { it.schemaPaths })
                 .distinct(),
             operationPaths = (serviceInfo.graphqlSrcDirs.mapNotNull { it.toProjectLocalPathOrNull() } +
-                dependenciesProjectFiles.flatMap { it.operationPaths })
+                upstreamApolloKotlinServices.flatMap { it.operationPaths })
                 .distinct(),
-            endpointUrl = if (toolingModel.versionMinor >= ApolloGradleToolingModel.VERSION_MINOR) serviceInfo.endpointUrl else null,
-            endpointHeaders = if (toolingModel.versionMinor >= ApolloGradleToolingModel.VERSION_MINOR) serviceInfo.endpointHeaders else null,
+            endpointUrl = serviceInfo.endpointUrlCompat(toolingModel),
+            endpointHeaders = serviceInfo.endpointHeadersCompat(toolingModel),
+            upstreamServiceIds = upstreamApolloKotlinServices.map { it.id },
+            useSemanticNaming = serviceInfo.useSemanticNamingCompat(toolingModel),
         )
       }
     }
@@ -257,13 +266,15 @@ class GradleToolingModelService(
     val apolloKotlinServices = mutableListOf<ApolloKotlinService>()
     for (toolingModel in toolingModels) {
       for (serviceInfo in toolingModel.serviceInfos) {
-        apolloKotlinServices += getApolloKotlinService(toolingModel.projectName, serviceInfo.name)
+        apolloKotlinServices += getApolloKotlinService(toolingModel.projectPathCompat, serviceInfo.name)
       }
     }
-    this.apolloKotlinServices = apolloKotlinServices
     logd("apolloKotlinServices=$apolloKotlinServices")
+    this.apolloKotlinServices = apolloKotlinServices
+    // Cache the ApolloKotlinServices into the project settings
+    project.projectSettingsState.apolloKotlinServices = apolloKotlinServices
 
-    // Project files are available, notify interested parties
+    // Services are available, notify interested parties
     project.messageBus.syncPublisher(ApolloKotlinServiceListener.TOPIC).apolloKotlinServicesAvailable()
   }
 
@@ -292,5 +303,30 @@ class GradleToolingModelService(
     }
   }
 }
+
+private val ApolloGradleToolingModel.projectPathCompat: String
+  get() = if (versionMinor >= 3) {
+    projectPath
+  } else {
+    @Suppress("DEPRECATION")
+    projectName
+  }
+
+private fun ApolloGradleToolingModel.ServiceInfo.upstreamProjectPathsCompat(toolingModel: ApolloGradleToolingModel) =
+  if (toolingModel.versionMinor >= 3) {
+    upstreamProjectPaths
+  } else {
+    @Suppress("DEPRECATION")
+    upstreamProjects
+  }
+
+private fun ApolloGradleToolingModel.ServiceInfo.endpointUrlCompat(toolingModel: ApolloGradleToolingModel) =
+  if (toolingModel.versionMinor >= 1) endpointUrl else null
+
+private fun ApolloGradleToolingModel.ServiceInfo.endpointHeadersCompat(toolingModel: ApolloGradleToolingModel) =
+  if (toolingModel.versionMinor >= 1) endpointHeaders else null
+
+private fun ApolloGradleToolingModel.ServiceInfo.useSemanticNamingCompat(toolingModel: ApolloGradleToolingModel) =
+  if (toolingModel.versionMinor >= 4) useSemanticNaming else true
 
 val Project.gradleToolingModelService get() = service<GradleToolingModelService>()

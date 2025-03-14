@@ -1,0 +1,22 @@
+{
+    "typeToFieldsToArguments": {
+        "Character": {
+        },
+        "Timestamp": {
+        },
+        "CharacterID": {
+        },
+        "String": {
+        },
+        "Date": {
+        },
+        "UnsupportedType": {
+        },
+        "URL": {
+        },
+        "Query": {
+        },
+        "ListOfString": {
+        }
+    }
+}

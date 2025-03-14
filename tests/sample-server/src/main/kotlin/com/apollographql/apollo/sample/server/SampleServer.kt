@@ -1,24 +1,21 @@
 package com.apollographql.apollo.sample.server
 
-import com.apollographql.apollo3.api.ExecutionContext
-import com.apollographql.apollo3.ast.toGQLDocument
-import com.apollographql.apollo3.ast.toSchema
-import com.apollographql.apollo3.execution.ExecutableSchema
-import com.apollographql.apollo3.execution.GraphQLRequest
-import com.apollographql.apollo3.execution.GraphQLRequestError
-import com.apollographql.apollo3.execution.WebSocketBinaryMessage
-import com.apollographql.apollo3.execution.WebSocketMessage
-import com.apollographql.apollo3.execution.WebSocketTextMessage
-import com.apollographql.apollo3.execution.parseGetGraphQLRequest
-import com.apollographql.apollo3.execution.parsePostGraphQLRequest
-import com.apollographql.apollo3.execution.websocket.ApolloWebSocketHandler
-import com.apollographql.apollo3.execution.websocket.ConnectionInitAck
-import com.apollographql.apollo3.execution.websocket.ConnectionInitError
-import com.apollographql.apollo3.execution.websocket.ConnectionInitHandler
+import com.apollographql.apollo.sample.server.graphql.SubscriptionRoot
+import com.apollographql.apollo.api.ExecutionContext
+import com.apollographql.execution.ExecutableSchema
+import com.apollographql.execution.parseAsGraphQLRequest
+import com.apollographql.execution.websocket.ConnectionInitAck
+import com.apollographql.execution.websocket.ConnectionInitError
+import com.apollographql.execution.websocket.ConnectionInitHandler
+import com.apollographql.execution.websocket.SubscriptionWebSocketHandler
+import com.apollographql.execution.websocket.WebSocketBinaryMessage
+import com.apollographql.execution.websocket.WebSocketMessage
+import com.apollographql.execution.websocket.WebSocketTextMessage
 import kotlinx.atomicfu.locks.reentrantLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.runBlocking
 import okio.Buffer
 import okio.buffer
 import okio.source
@@ -45,41 +42,35 @@ import org.http4k.websocket.WsHandler
 import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
 import org.http4k.websocket.WsStatus
-import sample.server.execution.SampleserverAdapterRegistry
-import sample.server.execution.SampleserverExecutableSchemaBuilder
-import sample.server.execution.SampleserverResolver
+import sample.server.SampleserverExecutableSchemaBuilder
 import java.io.Closeable
 import java.time.Duration
 import org.http4k.routing.ws.bind as wsBind
 
-fun ExecutableSchema(): ExecutableSchema {
-  val schema = GraphQLHttpHandler::class.java.classLoader
-      .getResourceAsStream("schema.graphqls")!!
-      .source()
-      .buffer()
-      .readUtf8()
-      .toGQLDocument()
-      .toSchema()
-
-  return SampleserverExecutableSchemaBuilder(schema)
+fun ExecutableSchema(tag: String): ExecutableSchema {
+  return SampleserverExecutableSchemaBuilder()
+      .subscriptionRoot {
+        SubscriptionRoot(tag)
+      }
       .build()
 }
 
-class GraphQLHttpHandler(val executableSchema: ExecutableSchema, val executionContext: ExecutionContext) : HttpHandler {
+class GraphQLHttpHandler(private val executableSchema: ExecutableSchema, private val executionContext: ExecutionContext) : HttpHandler {
   override fun invoke(request: Request): Response {
 
     val graphQLRequestResult = when (request.method) {
-      Method.GET -> request.uri.toString().parseGetGraphQLRequest()
-      Method.POST -> request.body.stream.source().buffer().use { it.parsePostGraphQLRequest() }
+      Method.GET -> request.uri.toString().parseAsGraphQLRequest()
+      Method.POST -> request.body.stream.source().buffer().use { it.parseAsGraphQLRequest() }
       else -> error("")
     }
 
-    if (graphQLRequestResult is GraphQLRequestError) {
-      return Response(BAD_REQUEST).body(graphQLRequestResult.message)
+    if (graphQLRequestResult.isFailure) {
+      return Response(BAD_REQUEST).body(graphQLRequestResult.exceptionOrNull()!!.message!!)
     }
-    graphQLRequestResult as GraphQLRequest
 
-    val response = executableSchema.execute(graphQLRequestResult, executionContext)
+    val response = runBlocking {
+      executableSchema.execute(graphQLRequestResult.getOrThrow(), executionContext)
+    }
 
     val buffer = Buffer()
     response.serialize(buffer)
@@ -129,7 +120,7 @@ class WebSocketRegistry : ExecutionContext.Element {
   companion object Key : ExecutionContext.Key<WebSocketRegistry>
 }
 
-class CurrentWebSocket(val ws: Websocket): ExecutionContext.Element {
+class CurrentWebSocket(val ws: Websocket) : ExecutionContext.Element {
 
   override val key: ExecutionContext.Key<CurrentWebSocket> = Key
 
@@ -173,7 +164,7 @@ fun ApolloWebsocketHandler(executableSchema: ExecutableSchema, webSocketRegistry
         ws.send(webSocketMessage.toWsMessage())
       }
 
-      val handler = ApolloWebSocketHandler(
+      val handler = SubscriptionWebSocketHandler(
           executableSchema = executableSchema,
           scope = scope,
           executionContext = webSocketRegistry + CurrentWebSocket(ws),
@@ -208,8 +199,8 @@ private fun WebSocketMessage.toWsMessage(): WsMessage {
   }
 }
 
-fun AppHandler(): PolyHandler {
-  val executableSchema = ExecutableSchema()
+fun AppHandler(tag: String): PolyHandler {
+  val executableSchema = ExecutableSchema(tag)
   val forceClose = WebSocketRegistry()
   val ws = websockets("/subscriptions" wsBind ApolloWebsocketHandler(executableSchema, webSocketRegistry = forceClose))
 
@@ -231,11 +222,11 @@ fun AppHandler(): PolyHandler {
 }
 
 fun runServer() {
-  AppHandler().asServer(Jetty(8000)).start().block()
+  AppHandler("").asServer(Jetty(8000)).start().block()
 }
 
-class SampleServer(val port: Int = 0) : Closeable {
-  private val server = AppHandler().asServer(Jetty(port, stopMode = ServerConfig.StopMode.Graceful(Duration.ZERO)))
+class SampleServer(port: Int = 0, tag: String = "") : Closeable {
+  private val server = AppHandler(tag).asServer(Jetty(port, stopMode = ServerConfig.StopMode.Graceful(Duration.ZERO)))
 
   init {
     server.start()

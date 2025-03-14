@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.jvm")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -13,7 +13,6 @@ dependencies {
 apollo {
   service("kotlin") {
     packageName.set("com.example.kotlin")
-    languageVersion.set("1.5")
   }
   service("java") {
     packageName.set("com.example.java")

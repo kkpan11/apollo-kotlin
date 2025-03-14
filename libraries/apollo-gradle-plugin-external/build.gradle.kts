@@ -1,12 +1,17 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
   id("org.jetbrains.kotlin.jvm")
   id("java-gradle-plugin")
   id("com.gradleup.gr8") // Only used for removeGradleApiFromApi()
+  id("org.jetbrains.kotlin.plugin.serialization")
+  id("com.android.lint")
 }
 
 apolloLibrary(
-    javaModuleName = "com.apollographql.apollo3.gradle",
-    jvmTarget = 11 // AGP requires 11
+    namespace = "com.apollographql.apollo.gradle",
+    jvmTarget = 11, // AGP requires 11
+    kotlinCompilerOptions = KotlinCompilerOptions(KotlinVersion.KOTLIN_1_9)
 )
 
 dependencies {
@@ -20,6 +25,9 @@ dependencies {
   implementation(libs.asm)
   implementation(libs.kotlinx.serialization.json)
 }
+dependencies {
+  lintChecks(libs.androidx.lint.rules)
+}
 
 gradlePlugin {
   website.set("https://github.com/apollographql/apollo-kotlin")
@@ -27,15 +35,22 @@ gradlePlugin {
 
   plugins {
     create("apolloGradlePlugin") {
-      id = "com.apollographql.apollo3.external"
+      id = "com.apollographql.apollo.external"
       displayName = "Apollo Kotlin GraphQL client plugin."
       description = "Automatically generates typesafe java and kotlin models from your GraphQL files."
-      implementationClass = "com.apollographql.apollo3.gradle.internal.ApolloPlugin"
+      implementationClass = "com.apollographql.apollo.gradle.internal.ApolloPlugin"
       tags.set(listOf("graphql", "apollo", "plugin"))
     }
   }
 }
 
-gr8 {
-  removeGradleApiFromApi()
+// The java-gradle-plugin adds `gradleApi()` to the `api` implementation but it contains some JDK15 bytecode at
+// org/gradle/internal/impldep/META-INF/versions/15/org/bouncycastle/jcajce/provider/asymmetric/edec/SignatureSpi$EdDSA.class:
+// java.lang.IllegalArgumentException: Unsupported class file major version 59
+// So remove it
+val apiDependencies = project.configurations.getByName("api").dependencies
+apiDependencies.firstOrNull {
+  it is FileCollectionDependency
+}.let {
+  apiDependencies.remove(it)
 }

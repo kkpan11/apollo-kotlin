@@ -1,33 +1,27 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.cache.normalized.FetchPolicy
-import com.apollographql.apollo3.cache.normalized.api.CacheHeaders
-import com.apollographql.apollo3.cache.normalized.api.CacheKey
-import com.apollographql.apollo3.cache.normalized.api.MemoryCache
-import com.apollographql.apollo3.cache.normalized.api.NormalizedCache
-import com.apollographql.apollo3.cache.normalized.api.NormalizedCacheFactory
-import com.apollographql.apollo3.cache.normalized.api.Record
-import com.apollographql.apollo3.cache.normalized.fetchPolicy
-import com.apollographql.apollo3.cache.normalized.normalizedCache
-import com.apollographql.apollo3.integration.normalizer.EpisodeHeroNameQuery
-import com.apollographql.apollo3.integration.normalizer.HeroNameQuery
-import com.apollographql.apollo3.integration.normalizer.type.Episode
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.enqueueString
-import com.apollographql.apollo3.mpp.Platform
-import com.apollographql.apollo3.mpp.currentThreadId
-import com.apollographql.apollo3.mpp.platform
-import com.apollographql.apollo3.testing.QueueTestNetworkTransport
-import com.apollographql.apollo3.testing.enqueueTestResponse
-import com.apollographql.apollo3.testing.internal.runTest
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import testFixtureToUtf8
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.cache.normalized.FetchPolicy
+import com.apollographql.apollo.cache.normalized.api.CacheHeaders
+import com.apollographql.apollo.cache.normalized.api.CacheKey
+import com.apollographql.apollo.cache.normalized.api.MemoryCache
+import com.apollographql.apollo.cache.normalized.api.NormalizedCache
+import com.apollographql.apollo.cache.normalized.api.NormalizedCacheFactory
+import com.apollographql.apollo.cache.normalized.api.Record
+import com.apollographql.apollo.cache.normalized.fetchPolicy
+import com.apollographql.apollo.cache.normalized.normalizedCache
+import com.apollographql.apollo.integration.normalizer.HeroNameQuery
+import com.apollographql.apollo.testing.*
+import com.apollographql.apollo.testing.QueueTestNetworkTransport
+import com.apollographql.apollo.testing.currentThreadId
+import com.apollographql.apollo.testing.enqueueTestResponse
+import com.apollographql.apollo.testing.platform
+import kotlinx.coroutines.test.runTest
 import kotlin.reflect.KClass
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 class ThreadTests {
+  @Suppress("DEPRECATION")
   class MyNormalizedCache(val mainThreadId: String) : NormalizedCache() {
     val delegate = MemoryCache()
 
@@ -97,10 +91,12 @@ class ThreadTests {
 
   @Test
   fun cacheIsNotReadFromTheMainThread() = runTest {
+    @Suppress("DEPRECATION")
     if (platform() == Platform.Js) {
       return@runTest
     }
 
+    @Suppress("DEPRECATION")
     val apolloClient = ApolloClient.Builder()
         .normalizedCache(MyMemoryCacheFactory(currentThreadId()))
         .networkTransport(QueueTestNetworkTransport())
@@ -113,17 +109,5 @@ class ThreadTests {
     apolloClient.query(query).execute()
     apolloClient.query(query).fetchPolicy(FetchPolicy.CacheOnly).execute()
     apolloClient.close()
-  }
-
-  @Test
-  @OptIn(ExperimentalCoroutinesApi::class)
-  fun usingKotlinxRunTest() = kotlinx.coroutines.test.runTest {
-    val mockServer = MockServer()
-    mockServer.enqueueString(testFixtureToUtf8("HeroNameResponse.json"))
-
-    val apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).build()
-    val response = apolloClient.query(EpisodeHeroNameQuery(Episode.EMPIRE)).execute()
-    mockServer.close()
-    assertEquals(response.data?.hero?.name, "R2-D2")
   }
 }

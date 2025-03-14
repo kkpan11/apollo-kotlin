@@ -5,10 +5,10 @@
 //
 package com.example.antlr_tokens.selections;
 
-import com.apollographql.apollo3.api.CompiledArgument;
-import com.apollographql.apollo3.api.CompiledField;
-import com.apollographql.apollo3.api.CompiledSelection;
-import com.apollographql.apollo3.api.CompiledVariable;
+import com.apollographql.apollo.api.CompiledArgument;
+import com.apollographql.apollo.api.CompiledField;
+import com.apollographql.apollo.api.CompiledSelection;
+import com.apollographql.apollo.api.CompiledVariable;
 import com.example.antlr_tokens.type.GraphQLString;
 import com.example.antlr_tokens.type.TypeWithGraphQLKeywords;
 import java.util.Arrays;
@@ -17,8 +17,8 @@ import java.util.List;
 public class TestQuerySelections {
   private static List<CompiledSelection> __typeWithGraphQLKeywords = Arrays.asList(
     new CompiledField.Builder("on", GraphQLString.type).build(),
-    new CompiledField.Builder("null", GraphQLString.type).arguments(Arrays.asList(new CompiledArgument.Builder("fragment").value(new CompiledVariable("operation")).build())).build(),
-    new CompiledField.Builder("null", GraphQLString.type).alias("alias").arguments(Arrays.asList(new CompiledArgument.Builder("fragment").value("A string\n"
+    new CompiledField.Builder("null", GraphQLString.type).arguments(Arrays.asList(new CompiledArgument.Builder(TypeWithGraphQLKeywords.__null_fragment).value(new CompiledVariable("operation")).build())).build(),
+    new CompiledField.Builder("null", GraphQLString.type).alias("alias").arguments(Arrays.asList(new CompiledArgument.Builder(TypeWithGraphQLKeywords.__null_fragment).value("A string\n"
             + "with a new line").build())).build()
   );
 

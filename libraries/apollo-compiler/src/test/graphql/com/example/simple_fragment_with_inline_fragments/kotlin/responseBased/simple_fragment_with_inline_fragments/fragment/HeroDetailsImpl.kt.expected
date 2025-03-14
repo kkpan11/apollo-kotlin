@@ -5,12 +5,12 @@
 //
 package com.example.simple_fragment_with_inline_fragments.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Fragment
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Fragment
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.simple_fragment_with_inline_fragments.fragment.selections.HeroDetailsSelections
 import com.example.simple_fragment_with_inline_fragments.type.Character
 import kotlin.Any
@@ -22,8 +22,6 @@ import kotlin.Suppress
 import kotlin.collections.List
 
 public class HeroDetailsImpl() : Fragment<HeroDetailsImpl.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -54,7 +52,8 @@ public class HeroDetailsImpl() : Fragment<HeroDetailsImpl.Data> {
      * The friends of the character, or an empty list if they have none
      */
     override val friends: List<Friend?>?,
-  ) : HeroDetails, Fragment.Data {
+  ) : HeroDetails,
+      Fragment.Data {
     public fun friendsFilterNotNull(): List<Friend>? = friends?.filterNotNull()
 
     public sealed interface Friend : HeroDetails.Friend {
@@ -84,7 +83,8 @@ public class HeroDetailsImpl() : Fragment<HeroDetailsImpl.Data> {
        * Height in the preferred unit, default is meters
        */
       override val height: Double?,
-    ) : Friend, HeroDetails.HumanFriend
+    ) : Friend,
+        HeroDetails.HumanFriend
 
     public data class DroidFriend(
       override val __typename: String,
@@ -96,7 +96,8 @@ public class HeroDetailsImpl() : Fragment<HeroDetailsImpl.Data> {
        * This droid's primary function
        */
       override val primaryFunction: String?,
-    ) : Friend, HeroDetails.DroidFriend
+    ) : Friend,
+        HeroDetails.DroidFriend
 
     public data class OtherFriend(
       override val __typename: String,
@@ -104,6 +105,7 @@ public class HeroDetailsImpl() : Fragment<HeroDetailsImpl.Data> {
        * The name of the character
        */
       override val name: String,
-    ) : Friend, HeroDetails.Friend
+    ) : Friend,
+        HeroDetails.Friend
   }
 }

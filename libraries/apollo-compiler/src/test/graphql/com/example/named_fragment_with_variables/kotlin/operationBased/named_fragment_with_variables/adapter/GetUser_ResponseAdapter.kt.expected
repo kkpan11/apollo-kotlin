@@ -5,12 +5,12 @@
 //
 package com.example.named_fragment_with_variables.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.missingField
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.missingField
 import com.example.named_fragment_with_variables.GetUser
 import kotlin.String
 import kotlin.collections.List
@@ -19,8 +19,7 @@ public object GetUser_ResponseAdapter {
   public object Data : Adapter<GetUser.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("__typename")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        GetUser.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): GetUser.Data {
       var __typename: String? = null
 
       while (true) {
@@ -31,8 +30,7 @@ public object GetUser_ResponseAdapter {
       }
 
       reader.rewind()
-      val _queryFragment = com.example.named_fragment_with_variables.fragment.QueryFragmentImpl_ResponseAdapter.QueryFragment.fromJson(reader,
-          customScalarAdapters)
+      val _queryFragment = com.example.named_fragment_with_variables.fragment.QueryFragmentImpl_ResponseAdapter.QueryFragment.fromJson(reader, customScalarAdapters)
 
       return GetUser.Data(
         __typename = __typename ?: missingField(reader, "__typename"),
@@ -48,8 +46,7 @@ public object GetUser_ResponseAdapter {
       writer.name("__typename")
       StringAdapter.toJson(writer, customScalarAdapters, value.__typename)
 
-      com.example.named_fragment_with_variables.fragment.QueryFragmentImpl_ResponseAdapter.QueryFragment.toJson(writer,
-          customScalarAdapters, value.queryFragment)
+      com.example.named_fragment_with_variables.fragment.QueryFragmentImpl_ResponseAdapter.QueryFragment.toJson(writer, customScalarAdapters, value.queryFragment)
     }
   }
 }

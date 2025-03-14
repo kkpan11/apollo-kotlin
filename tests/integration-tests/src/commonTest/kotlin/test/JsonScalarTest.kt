@@ -1,17 +1,17 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.AnyAdapter
-import com.apollographql.apollo3.cache.normalized.ApolloStore
-import com.apollographql.apollo3.cache.normalized.FetchPolicy
-import com.apollographql.apollo3.cache.normalized.api.MemoryCacheFactory
-import com.apollographql.apollo3.cache.normalized.fetchPolicy
-import com.apollographql.apollo3.cache.normalized.store
-import com.apollographql.apollo3.integration.normalizer.GetJsonScalarQuery
-import com.apollographql.apollo3.integration.normalizer.type.Json
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.enqueueString
-import com.apollographql.apollo3.testing.internal.runTest
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.AnyAdapter
+import com.apollographql.apollo.cache.normalized.ApolloStore
+import com.apollographql.apollo.cache.normalized.FetchPolicy
+import com.apollographql.apollo.cache.normalized.api.MemoryCacheFactory
+import com.apollographql.apollo.cache.normalized.fetchPolicy
+import com.apollographql.apollo.cache.normalized.store
+import com.apollographql.apollo.integration.normalizer.GetJsonScalarQuery
+import com.apollographql.apollo.integration.normalizer.type.Json
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.enqueueString
+import com.apollographql.apollo.testing.internal.runTest
 import testFixtureToUtf8
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,7 +35,7 @@ class JsonScalarTest {
     mockServer.close()
   }
 
-  // see https://github.com/apollographql/apollo-android/issues/2854
+  // see https://github.com/apollographql/apollo-kotlin/issues/2854
   @Test
   fun jsonScalar() = runTest(before = { setUp() }, after = { tearDown() }) {
     mockServer.enqueueString(testFixtureToUtf8("JsonScalar.json"))

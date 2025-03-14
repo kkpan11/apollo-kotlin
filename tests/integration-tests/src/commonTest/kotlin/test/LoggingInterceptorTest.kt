@@ -1,14 +1,14 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.Upload
-import com.apollographql.apollo3.integration.normalizer.HeroNameQuery
-import com.apollographql.apollo3.integration.upload.SingleUploadMutation
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.enqueueString
-import com.apollographql.apollo3.network.http.LoggingInterceptor
-import com.apollographql.apollo3.network.http.LoggingInterceptor.Level
-import com.apollographql.apollo3.testing.internal.runTest
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.Upload
+import com.apollographql.apollo.integration.normalizer.HeroNameQuery
+import com.apollographql.apollo.integration.upload.SingleUploadMutation
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.enqueueString
+import com.apollographql.apollo.network.http.LoggingInterceptor
+import com.apollographql.apollo.network.http.LoggingInterceptor.Level
+import com.apollographql.apollo.testing.internal.runTest
 import okio.BufferedSink
 import testFixtureToUtf8
 import kotlin.test.Test
@@ -120,9 +120,7 @@ class LoggingInterceptorTest {
     client.query(HeroNameQuery()).execute()
     logger.assertLog("""
       Post http://0.0.0.0/
-      X-APOLLO-OPERATION-ID: 7e7c85cbf5ef3af5641552c55965608a4e5d7243f3116a486d21c3a958d34235
-      X-APOLLO-OPERATION-NAME: HeroName
-      accept: multipart/mixed; deferspec=20220824, application/json
+      accept: multipart/mixed;deferspec=20220824, application/graphql-response+json, application/json
       [end of headers]
 
       HTTP: 200
@@ -142,9 +140,7 @@ class LoggingInterceptorTest {
     client.query(HeroNameQuery()).execute()
     logger.assertLog("""
       Post http://0.0.0.0/
-      X-APOLLO-OPERATION-ID: 7e7c85cbf5ef3af5641552c55965608a4e5d7243f3116a486d21c3a958d34235
-      X-APOLLO-OPERATION-NAME: HeroName
-      accept: multipart/mixed; deferspec=20220824, application/json
+      accept: multipart/mixed;deferspec=20220824, application/graphql-response+json, application/json
       [end of headers]
       {"operationName":"HeroName","variables":{},"query":"query HeroName { hero { name } }"}
 
@@ -185,9 +181,7 @@ class LoggingInterceptorTest {
     client.query(HeroNameQuery()).execute()
     logger.assertLog("""
       Post http://0.0.0.0/
-      X-APOLLO-OPERATION-ID: 7e7c85cbf5ef3af5641552c55965608a4e5d7243f3116a486d21c3a958d34235
-      X-APOLLO-OPERATION-NAME: HeroName
-      accept: multipart/mixed; deferspec=20220824, application/json
+      accept: multipart/mixed;deferspec=20220824, application/graphql-response+json, application/json
       [end of headers]
       {"operationName":"HeroName","variables":{},"query":"query HeroName { hero { name } }"}
 
@@ -220,7 +214,7 @@ class LoggingInterceptorTest {
         sink.writeUtf8(content)
       }
     }
-    val apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).addHttpInterceptor(LoggingInterceptor()).build()
+    val apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).build()
     apolloClient.mutation(SingleUploadMutation(upload)).execute()
     assertEquals(1, uploadRead)
   }

@@ -1,9 +1,11 @@
 package test
 
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.MapJsonReader
+import com.apollographql.apollo.api.json.JsonNumber
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.MapJsonReader
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class MapJsonReaderTest {
   @Test
@@ -52,7 +54,7 @@ class MapJsonReaderTest {
   }
 
   @Test
-  fun canRewingInMap() {
+  fun canRewindInMap() {
     val map = mapOf(
         "key1" to "value1",
         "key2" to "value2",
@@ -72,5 +74,28 @@ class MapJsonReaderTest {
     jsonReader.endObject()
 
     assertEquals(jsonReader.peek(), JsonReader.Token.END_DOCUMENT)
+  }
+
+  @Test
+  fun nextStringWorksOnNumbers() {
+    val map = mapOf(
+        "key0" to 0,
+        "key1" to 1.0,
+        "key2" to 2L,
+        "key3" to JsonNumber("3")
+    )
+
+    MapJsonReader(map).apply {
+      beginObject()
+      assertEquals("key0", nextName())
+      assertEquals("0", nextString())
+      assertEquals("key1", nextName())
+      assertTrue(nextString().startsWith("1")) // In JS, 1.0.toString() returns "1", others return "1.0"
+      assertEquals("key2", nextName())
+      assertEquals("2", nextString())
+      assertEquals("key3", nextName())
+      assertEquals("3", nextString())
+      endObject()
+    }
   }
 }

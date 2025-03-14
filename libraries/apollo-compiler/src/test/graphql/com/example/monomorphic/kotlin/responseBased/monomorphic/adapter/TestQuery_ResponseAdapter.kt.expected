@@ -5,14 +5,14 @@
 //
 package com.example.monomorphic.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.json.readTypename
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.json.readTypename
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.obj
 import com.example.monomorphic.TestQuery
 import kotlin.String
 import kotlin.Suppress
@@ -22,8 +22,7 @@ public object TestQuery_ResponseAdapter {
   public object Data : Adapter<TestQuery.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("cat")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        TestQuery.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data {
       var _cat: TestQuery.Data.Cat? = null
 
       while (true) {
@@ -48,8 +47,7 @@ public object TestQuery_ResponseAdapter {
     }
 
     private object Cat : Adapter<TestQuery.Data.Cat> {
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          TestQuery.Data.Cat {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data.Cat {
         val __typename = reader.readTypename()
         return when(__typename) {
           "Cat",
@@ -65,8 +63,7 @@ public object TestQuery_ResponseAdapter {
         `value`: TestQuery.Data.Cat,
       ) {
         when(value) {
-          is TestQuery.Data.AnimalNodeCat -> AnimalNodeCat.toJson(writer, customScalarAdapters,
-              value)
+          is TestQuery.Data.AnimalNodeCat -> AnimalNodeCat.toJson(writer, customScalarAdapters, value)
           is TestQuery.Data.OtherCat -> OtherCat.toJson(writer, customScalarAdapters, value)
         }
       }

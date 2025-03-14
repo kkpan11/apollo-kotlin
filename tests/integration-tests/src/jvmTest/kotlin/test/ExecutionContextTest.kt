@@ -1,40 +1,32 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.ExecutionContext
-import com.apollographql.apollo3.api.http.HttpRequest
-import com.apollographql.apollo3.api.http.HttpResponse
-import com.apollographql.apollo3.integration.normalizer.HeroNameQuery
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.enqueueString
-import com.apollographql.apollo3.network.http.DefaultHttpEngine.Companion.execute
-import com.apollographql.apollo3.network.http.DefaultHttpEngine.Companion.toApolloHttpResponse
-import com.apollographql.apollo3.network.http.DefaultHttpEngine.Companion.toOkHttpRequest
-import com.apollographql.apollo3.network.http.HttpEngine
-import com.apollographql.apollo3.testing.internal.runTest
-import okhttp3.OkHttpClient
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.ExecutionContext
+import com.apollographql.apollo.api.http.HttpRequest
+import com.apollographql.apollo.api.http.HttpResponse
+import com.apollographql.apollo.integration.normalizer.HeroNameQuery
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.enqueueError
+import com.apollographql.mockserver.enqueueString
+import com.apollographql.apollo.network.http.DefaultHttpEngine
+import com.apollographql.apollo.network.http.HttpEngine
+import com.apollographql.apollo.testing.internal.runTest
 import org.junit.Test
 import kotlin.test.assertEquals
 
-internal class MyHttpEngine: HttpEngine {
+internal class MyHttpEngine : HttpEngine {
+  private val wrappedHttpEngine = DefaultHttpEngine()
   val values = mutableListOf<String>()
 
-  private val okHttpClient = OkHttpClient()
-
   override suspend fun execute(request: HttpRequest): HttpResponse {
-    val myExecutionContext  = request.executionContext[MyExecutionContext]?.also {
+    request.executionContext[MyExecutionContext]?.also {
       values.add(it.value)
     }
-    val taggedRequest = request
-        .toOkHttpRequest()
-        .newBuilder()
-        .tag(MyExecutionContext::class.java, myExecutionContext)
-        .build()
-    return okHttpClient.execute(taggedRequest).toApolloHttpResponse()
+    return wrappedHttpEngine.execute(request)
   }
 
-  override fun dispose() {
-
+  override fun close() {
+    wrappedHttpEngine.close()
   }
 }
 
@@ -50,12 +42,12 @@ class ExecutionContextTest {
           .build().use { apolloClient ->
 
             // we don't need a response
-            mockServer.enqueueString(statusCode = 404)
+            mockServer.enqueueError(statusCode = 404)
             apolloClient.query(HeroNameQuery())
                 .addExecutionContext(MyExecutionContext("value0"))
                 .execute()
 
-            mockServer.enqueueString(statusCode = 404)
+            mockServer.enqueueError(statusCode = 404)
             apolloClient.query(HeroNameQuery())
                 .addExecutionContext(MyExecutionContext("value1"))
                 .execute()
@@ -69,8 +61,8 @@ class ExecutionContextTest {
   }
 }
 
-class MyExecutionContext(val value: String): ExecutionContext.Element {
-  companion object Key: ExecutionContext.Key<MyExecutionContext>
+class MyExecutionContext(val value: String) : ExecutionContext.Element {
+  companion object Key : ExecutionContext.Key<MyExecutionContext>
 
   override val key: ExecutionContext.Key<MyExecutionContext>
     get() = Key

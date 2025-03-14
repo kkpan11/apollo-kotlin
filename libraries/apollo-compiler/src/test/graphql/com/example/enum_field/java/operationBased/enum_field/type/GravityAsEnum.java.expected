@@ -5,11 +5,12 @@
 //
 package com.example.enum_field.type;
 
-import com.apollographql.apollo3.api.EnumType;
+import com.apollographql.apollo.api.EnumType;
 import java.lang.Deprecated;
 import java.lang.String;
 import java.lang.SuppressWarnings;
 import java.util.Arrays;
+import java.util.Objects;
 
 public enum GravityAsEnum {
   TOP("TOP"),
@@ -42,12 +43,14 @@ public enum GravityAsEnum {
    */
   String("String"),
 
+  field("field"),
+
   /**
    * Auto generated constant for unknown enum values
    */
   UNKNOWN__("UNKNOWN__");
 
-  public static EnumType type = new EnumType("GravityAsEnum", Arrays.asList("TOP", "CENTER", "BOTTOM", "bottom", "is", "while", "type", "String"));
+  public static EnumType type = new EnumType("GravityAsEnum", Arrays.asList("TOP", "CENTER", "BOTTOM", "bottom", "is", "while", "type", "String", "field"));
 
   public String rawValue;
 
@@ -55,9 +58,13 @@ public enum GravityAsEnum {
     this.rawValue = rawValue;
   }
 
+  /**
+   * Returns the GravityAsEnum that represents the specified rawValue.
+   * Note: unknown values of rawValue will return UNKNOWN__. You may want to update your schema instead of calling this method directly.
+   */
   @SuppressWarnings("deprecation")
   public static GravityAsEnum safeValueOf(String rawValue) {
-    switch (rawValue) {
+    switch (Objects.requireNonNull(rawValue)) {
       case "TOP": return GravityAsEnum.TOP;
       case "CENTER": return GravityAsEnum.CENTER;
       case "BOTTOM": return GravityAsEnum.BOTTOM;
@@ -66,6 +73,7 @@ public enum GravityAsEnum {
       case "while": return GravityAsEnum.while_;
       case "type": return GravityAsEnum.type_;
       case "String": return GravityAsEnum.String;
+      case "field": return GravityAsEnum.field;
       default: return GravityAsEnum.UNKNOWN__;
     }
   }

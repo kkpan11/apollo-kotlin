@@ -1,12 +1,10 @@
 import com.android.build.api.dsl.LibraryExtension
 import com.android.build.gradle.BaseExtension
-import dev.adamko.dokkatoo.DokkatooExtension
-import dev.adamko.dokkatoo.dokka.plugins.DokkaHtmlPluginParameters
-import dev.adamko.dokkatoo.dokka.plugins.DokkaVersioningPluginParameters
-import dev.adamko.dokkatoo.tasks.DokkatooGenerateTask
 import kotlinx.coroutines.runBlocking
 import net.mbonnin.vespene.lib.NexusStagingClient
 import org.gradle.api.Project
+import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
@@ -17,6 +15,11 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.plugins.signing.Sign
 import org.gradle.plugins.signing.SigningExtension
+import org.jetbrains.dokka.gradle.DokkaExtension
+import org.jetbrains.dokka.gradle.engine.plugins.DokkaHtmlPluginParameters
+import org.jetbrains.dokka.gradle.engine.plugins.DokkaVersioningPluginParameters
+import org.jetbrains.dokka.gradle.tasks.DokkaGenerateTask
+import javax.inject.Inject
 
 fun Project.configurePublishing(isAggregateKdoc: Boolean = false) {
   apply {
@@ -44,13 +47,13 @@ fun Project.configurePublishing(isAggregateKdoc: Boolean = false) {
   configurePublishingInternal()
 }
 
-fun Project.configureDokkaCommon(): DokkatooExtension {
+fun Project.configureDokkaCommon(): DokkaExtension {
   apply {
-    plugin("dev.adamko.dokkatoo-html")
+    plugin("org.jetbrains.dokka")
   }
-  val dokkatoo = extensions.getByType(DokkatooExtension::class.java)
+  val dokka = extensions.getByType(DokkaExtension::class.java)
 
-  dokkatoo.apply {
+  dokka.apply {
     pluginsConfiguration.getByName("html") {
       this as DokkaHtmlPluginParameters
       customStyleSheets.from(
@@ -62,15 +65,23 @@ fun Project.configureDokkaCommon(): DokkatooExtension {
     }
   }
 
-  tasks.withType(DokkatooGenerateTask::class.java).configureEach {
-    workerMaxHeapSize.set("8g")
+  tasks.withType(DokkaGenerateTask::class.java).configureEach {
+    workerIsolation.set(dokka.ClassLoaderIsolation())
   }
 
-  dokkatoo.dokkatooSourceSets.configureEach {
+  dokka.dokkaSourceSets.configureEach {
     includes.from("README.md")
   }
 
-  return dokkatoo
+  // Workaround for https://github.com/adamko-dev/dokkatoo/issues/165
+  configurations.configureEach {
+    if (name.lowercase().contains("dokkaHtmlPublicationPluginApiOnlyConsumable~internal".lowercase())) {
+      attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "poison"))
+      }
+    }
+  }
+  return dokka
 }
 
 fun Project.configureDokka() {
@@ -78,45 +89,56 @@ fun Project.configureDokka() {
   val project = this
   val kdocProject = project(":apollo-kdoc")
   kdocProject.configurations.all {
-    if (name == "dokkatoo") {
+    if (name == "dokka") {
       this.dependencies.add(kdocProject.dependencies.project(mapOf("path" to project.path)))
     }
   }
 }
 
+private class MavenCoordinates(val module: String, val version: String)
+
 fun Project.configureDokkaAggregate() {
-  val dokkatoo = configureDokkaCommon()
+  val dokka = configureDokkaCommon()
+
   dependencies.add(
-      "dokkatooPluginHtml",
-      dokkatoo.versions.jetbrainsDokka.map { dokkaVersion ->
+      "dokkaHtmlPlugin",
+      dokka.dokkaEngineVersion.map { dokkaVersion ->
         "org.jetbrains.dokka:all-modules-page-plugin:$dokkaVersion"
       }
   )
   dependencies.add(
-      "dokkatooPluginHtml",
-      dokkatoo.versions.jetbrainsDokka.map { dokkaVersion ->
+      "dokkaHtmlPlugin",
+      dokka.dokkaEngineVersion.map { dokkaVersion ->
         "org.jetbrains.dokka:versioning-plugin:$dokkaVersion"
       }
   )
 
-  val olderVersions = listOf<String>()
-  val kdocVersionTasks = olderVersions.map { version ->
-    val versionString = version.replace(".", "_").replace("-", "_")
+
+  val olderVersionsCoordinates = listOf(MavenCoordinates("com.apollographql.apollo3:apollo-kdoc", "3.8.2"))
+  val kdocVersionTasks = olderVersionsCoordinates.map { coordinate ->
+    val versionString = coordinate.version.replace(".", "_").replace("-", "_")
     val configuration = configurations.create("apolloKdocVersion_$versionString") {
       isCanBeResolved = true
       isCanBeConsumed = false
       isTransitive = false
 
-      dependencies.add(project.dependencies.create("com.apollographql.apollo3:apollo-kdoc:$version:javadoc"))
+      dependencies.add(project.dependencies.create("${coordinate.module}:${coordinate.version}:javadoc"))
     }
 
+    val fileOperations = objects.newInstance(FileOperationsHolder::class.java).fileOperations
+
     tasks.register("extractApolloKdocVersion_$versionString", Copy::class.java) {
-      from(configuration.map { zipTree(it) })
-      into(layout.buildDirectory.dir("kdoc-versions/$version"))
+
+      from(configuration.elements.map {
+        it.map {
+          fileOperations.zipTree(it)
+        }
+      })
+      into(layout.buildDirectory.dir("kdoc-versions/${coordinate.version}"))
     }
   }
 
-  val downloadKDocVersions = tasks.register("dowloadKDocVersions") {
+  val downloadKDocVersions = tasks.register("downloadKDocVersions") {
     dependsOn(kdocVersionTasks)
     outputs.dir(layout.buildDirectory.dir("kdoc-versions/"))
     doLast {
@@ -125,15 +147,15 @@ fun Project.configureDokkaAggregate() {
     }
   }
 
-  dokkatoo.pluginsConfiguration.getByName("versioning") {
+  dokka.pluginsConfiguration.getByName("versioning") {
     this as DokkaVersioningPluginParameters
     val currentVersion = findProperty("VERSION_NAME") as String
     version.set(currentVersion)
-    // Workaround for https://github.com/adamko-dev/dokkatoo/pull/135
-    versionsOrdering.set((olderVersions + currentVersion).reversed())
     olderVersionsDir.fileProvider(downloadKDocVersions.map { it.outputs.files.singleFile })
   }
-  tasks.withType(DokkatooGenerateTask::class.java).configureEach {
+
+  tasks.withType(DokkaGenerateTask::class.java).configureEach {
+    dependsOn(downloadKDocVersions)
     /**
      * The Apollo docs website expect the contents to be in a `kdoc` subfolder
      * See https://github.com/apollographql/website-router/blob/389d6748c592ac88411ceb15c93965d2b800d9b3/_redirects#L105
@@ -141,6 +163,8 @@ fun Project.configureDokkaAggregate() {
     outputDirectory.set(layout.buildDirectory.asFile.get().resolve("dokka/html/kdoc"))
   }
 }
+
+private abstract class FileOperationsHolder @Inject constructor(val fileOperations: FileOperations)
 
 private fun Project.getOssStagingUrl(): String {
   val url = try {
@@ -268,7 +292,7 @@ private fun Project.configurePublishingInternal() {
            */
           val kdocWithoutOlder = tasks.register("kdocWithoutOlder", org.gradle.jvm.tasks.Jar::class.java) {
             archiveClassifier.set("javadoc")
-            from(tasks.named("dokkatooGeneratePublicationHtml").map { (it as DokkatooGenerateTask).outputDirectory.get().asFile })
+            from(tasks.named("dokkaGeneratePublicationHtml").map { (it as DokkaGenerateTask).outputDirectory.get().asFile })
             exclude("/older/**")
           }
 
@@ -324,12 +348,8 @@ private fun Project.configurePublishingInternal() {
       }
 
       maven {
-        name = "repsy"
-        setUrl("https://repo.repsy.io/mvn/mbonnin/default")
-        credentials {
-          username = System.getenv("REPSY_USERNAME")
-          password = System.getenv("REPSY_PASSWORD")
-        }
+        name = "apolloPreviews"
+        setUrl("gcs://apollo-previews/m2")
       }
     }
   }
@@ -396,7 +416,6 @@ private fun Project.setDefaultPomFields(mavenPublication: MavenPublication) {
     licenses {
       license {
         name.set(findProperty("POM_LICENCE_NAME") as String?)
-        url.set(findProperty("POM_LICENCE_URL") as String?)
       }
     }
 

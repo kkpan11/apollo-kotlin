@@ -1,23 +1,29 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.AnyAdapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.json.writeObject
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.enqueueString
-import com.apollographql.apollo3.testing.internal.runTest
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.AnyAdapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.json.jsonReader
+import com.apollographql.apollo.api.json.writeObject
+import com.apollographql.apollo.testing.internal.runTest
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.enqueueString
 import custom.scalars.Address
 import custom.scalars.AddressQuery
 import custom.scalars.BuiltInAdaptersQuery
 import custom.scalars.CompileTimeAdaptersQuery
 import custom.scalars.DecimalQuery
+import custom.scalars.InlineClassQuery
+import custom.scalars.type.scalar.Length
+import okio.Buffer
 import org.junit.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class CustomScalarTest {
   /**
@@ -44,7 +50,8 @@ class CustomScalarTest {
           "nullableNotMapped": null
         }
       }
-    """.trimIndent())
+    """.trimIndent()
+    )
 
     val data = ApolloClient.Builder().serverUrl(serverUrl = mockServer.url()).build()
         .query(BuiltInAdaptersQuery())
@@ -58,7 +65,8 @@ class CustomScalarTest {
     assertEquals(listOf(
         mapOf("lat" to 1, "lon" to 2),
         mapOf("lat" to 3, "lon" to 4),
-    ), data.geoPoints)
+    ), data.geoPoints
+    )
     assertEquals(true, data.boolean)
     assertNull(data.nullableBoolean)
     assertEquals(mapOf("key" to "value"), data.notMapped)
@@ -80,7 +88,8 @@ class CustomScalarTest {
           "nullableString": null
         }
       }
-    """.trimIndent())
+    """.trimIndent()
+    )
 
     val data = ApolloClient.Builder().serverUrl(serverUrl = mockServer.url()).build()
         .query(CompileTimeAdaptersQuery())
@@ -103,7 +112,8 @@ class CustomScalarTest {
           "decimal": 1000000000000000000000000000000000000000000
         }
       }
-    """.trimIndent())
+    """.trimIndent()
+    )
 
     val data = ApolloClient.Builder()
         .serverUrl(serverUrl = mockServer.url())
@@ -112,6 +122,9 @@ class CustomScalarTest {
         .execute()
         .dataOrThrow()
 
+    /*
+     * Decimal is mapped to a String to get the same `toString` representation, else Double
+     */
     assertEquals("1000000000000000000000000000000000000000000", data.decimal?.toString())
   }
 
@@ -130,7 +143,8 @@ class CustomScalarTest {
           }
         }
       }
-    """.trimIndent())
+    """.trimIndent()
+    )
 
     val customTypeAdapter = object : Adapter<Address> {
       override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): Address {
@@ -158,5 +172,64 @@ class CustomScalarTest {
         .dataOrThrow()
 
     assertEquals(Address("Downing Street", 10), data.address)
+  }
+
+  @Test
+  fun forgettingToAddARuntimeAdapterForAScalarRegisteredInThePluginFails() {
+    val dataString = """
+      {
+        "address": {
+          "street": "Downing Street",
+          "number": 10
+        }
+      }
+    """.trimIndent()
+
+
+    try {
+      val query = AddressQuery()
+      query.adapter().fromJson(Buffer().writeUtf8(dataString).jsonReader(), CustomScalarAdapters.Empty)
+      error("expected IllegalStateException")
+    } catch (e: IllegalStateException) {
+      assertTrue(e.message!!.contains("Can't map GraphQL type: `Address`"))
+    }
+  }
+
+  @Test
+  fun inlineClass() = runTest {
+    val mockServer = MockServer()
+    mockServer.enqueueString("""
+      {
+        "data": {
+          "nonNullableLength": 1,
+          "nullableLength": null,
+          "nonNullableLengthList": [1, 2],
+          "lengthListList": [
+            [1, 2],
+            [3, 4]
+          ]
+        }
+      }
+    """.trimIndent()
+    )
+
+    val data = ApolloClient.Builder().serverUrl(serverUrl = mockServer.url()).build()
+        .query(InlineClassQuery())
+        .execute()
+        .dataOrThrow()
+    assertEquals(Length(1), data.nonNullableLength)
+    assertNull(data.nullableLength)
+    assertContentEquals(
+        listOf(Length(1), Length(2)),
+        data.nonNullableLengthList
+    )
+    assertContentEquals(
+        listOf(
+            listOf(Length(1), Length(2)),
+            listOf(Length(3), Length(4)
+            )
+        ),
+        data.lengthListList
+    )
   }
 }

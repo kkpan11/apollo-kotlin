@@ -5,13 +5,13 @@
 //
 package com.example.named_fragment_inside_inline_fragment.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.list
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.nullable
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.list
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.nullable
 import com.example.named_fragment_inside_inline_fragment.type.Episode
 import com.example.named_fragment_inside_inline_fragment.type.adapter.Episode_ResponseAdapter
 import kotlin.String
@@ -21,8 +21,7 @@ public object CharacterAppearsInImpl_ResponseAdapter {
   public object Data : Adapter<CharacterAppearsInImpl.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("appearsIn")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        CharacterAppearsInImpl.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): CharacterAppearsInImpl.Data {
       var _appearsIn: List<Episode?>? = null
 
       while (true) {
@@ -43,8 +42,7 @@ public object CharacterAppearsInImpl_ResponseAdapter {
       `value`: CharacterAppearsInImpl.Data,
     ) {
       writer.name("appearsIn")
-      Episode_ResponseAdapter.nullable().list().toJson(writer, customScalarAdapters,
-          value.appearsIn)
+      Episode_ResponseAdapter.nullable().list().toJson(writer, customScalarAdapters, value.appearsIn)
     }
   }
 }

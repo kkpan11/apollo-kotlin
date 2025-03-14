@@ -5,7 +5,7 @@
 //
 package com.example.introspection_query.type
 
-import com.apollographql.apollo3.api.EnumType
+import com.apollographql.apollo.api.EnumType
 import kotlin.Array
 import kotlin.Deprecated
 import kotlin.String
@@ -29,22 +29,22 @@ public enum class __TypeKind(
   ;
 
   public companion object {
-    public val type: EnumType = EnumType("__TypeKind", listOf("SCALAR", "OBJECT", "INTERFACE",
-        "UNION", "ENUM", "INPUT_OBJECT", "LIST", "NON_NULL"))
+    public val type: EnumType =
+        EnumType("__TypeKind", listOf("SCALAR", "OBJECT", "INTERFACE", "UNION", "ENUM", "INPUT_OBJECT", "LIST", "NON_NULL"))
 
     /**
      * All [__TypeKind] known at compile time
      */
     public val knownEntries: List<__TypeKind>
       get() = listOf(
-        SCALAR,
-        OBJECT,
-        INTERFACE,
-        UNION,
-        ENUM,
-        INPUT_OBJECT,
-        LIST,
-        NON_NULL)
+        __TypeKind.SCALAR,
+        __TypeKind.OBJECT,
+        __TypeKind.INTERFACE,
+        __TypeKind.UNION,
+        __TypeKind.ENUM,
+        __TypeKind.INPUT_OBJECT,
+        __TypeKind.LIST,
+        __TypeKind.NON_NULL)
 
     /**
      * Returns all [__TypeKind] known at compile time
@@ -55,7 +55,10 @@ public enum class __TypeKind(
     )
     public fun knownValues(): Array<__TypeKind> = knownEntries.toTypedArray()
 
-    public fun safeValueOf(rawValue: String): __TypeKind = values().find { it.rawValue == rawValue }
-        ?: UNKNOWN__
+    /**
+     * Returns the [__TypeKind] that represents the specified [rawValue].
+     * Note: unknown values of [rawValue] will return [UNKNOWN__]. You may want to update your schema instead of calling this function directly.
+     */
+    public fun safeValueOf(rawValue: String): __TypeKind = values().find { it.rawValue == rawValue } ?: UNKNOWN__
   }
 }

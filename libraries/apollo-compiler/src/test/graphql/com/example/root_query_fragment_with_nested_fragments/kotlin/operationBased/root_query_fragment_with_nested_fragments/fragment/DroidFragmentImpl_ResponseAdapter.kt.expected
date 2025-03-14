@@ -5,23 +5,21 @@
 //
 package com.example.root_query_fragment_with_nested_fragments.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.NullableStringAdapter
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.missingField
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.NullableStringAdapter
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.missingField
 import kotlin.String
 import kotlin.collections.List
 
 public object DroidFragmentImpl_ResponseAdapter {
-  public object DroidFragment :
-      Adapter<com.example.root_query_fragment_with_nested_fragments.fragment.DroidFragment> {
+  public object DroidFragment : Adapter<com.example.root_query_fragment_with_nested_fragments.fragment.DroidFragment> {
     public val RESPONSE_NAMES: List<String> = listOf("name", "primaryFunction")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        com.example.root_query_fragment_with_nested_fragments.fragment.DroidFragment {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): com.example.root_query_fragment_with_nested_fragments.fragment.DroidFragment {
       var _name: String? = null
       var _primaryFunction: String? = null
 

@@ -1,8 +1,10 @@
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.android.ApolloIdlingResource
-import com.apollographql.apollo3.android.idlingResource
-import com.apollographql.apollo3.mockserver.MockResponse
-import com.apollographql.apollo3.mockserver.MockServer
+@file:Suppress("DEPRECATION")
+
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.android.ApolloIdlingResource
+import com.apollographql.apollo.android.idlingResource
+import com.apollographql.mockserver.MockResponse
+import com.apollographql.mockserver.MockServer
 import idling.resource.IdlingResourceQuery
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.delay

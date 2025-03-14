@@ -1,11 +1,12 @@
 package com.apollographql.ijplugin.studio.sandbox
 
+import com.apollographql.ijplugin.util.executeOnPooledThread
 import com.apollographql.ijplugin.util.logd
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -43,8 +44,10 @@ class SandboxService(
         object : FileEditorManagerListener {
           override fun fileOpened(source: FileEditorManager, file: VirtualFile) {
             logd("$file")
-            invokeLater {
-              addOpenInSandboxAction(file)
+            executeOnPooledThread {
+              invokeLater {
+                addOpenInSandboxAction(file)
+              }
             }
           }
         }
@@ -53,7 +56,7 @@ class SandboxService(
 
   private fun addOpenInSandboxAction(file: VirtualFile) {
     // Only care about GraphQL files
-    if (!GraphQLFileType.isGraphQLFile(project, file)) return
+    if (!GraphQLFileType.isGraphQLFile(file)) return
 
     val fileEditorManager = FileEditorManager.getInstance(project)
     val fileEditor = fileEditorManager.getSelectedEditor(file) ?: return
@@ -62,7 +65,7 @@ class SandboxService(
 
     // XXX This is fragile as it tightly relies on how the header component's UI is built by the GraphQL Plugin
     val onePixelSplitter = existingEditorHeaderComponent.components?.firstIsInstanceOrNull<OnePixelSplitter>() ?: return
-    val actionToolbar = onePixelSplitter.secondComponent as? ActionToolbarImpl ?: return
+    val actionToolbar = onePixelSplitter.secondComponent as? ActionToolbar ?: return
     val actionGroup = actionToolbar.actionGroup as? DefaultActionGroup ?: return
 
     if (actionGroup.getChildActionsOrStubs().none { it is OpenInSandboxAction }) {

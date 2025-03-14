@@ -5,15 +5,15 @@
 //
 package com.example.named_fragment_with_variables.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.list
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.list
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
 import com.example.named_fragment_with_variables.GetUser
 import kotlin.String
 import kotlin.collections.List
@@ -22,8 +22,7 @@ public object GetUser_ResponseAdapter {
   public object Data : Adapter<GetUser.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("__typename", "organization")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        GetUser.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): GetUser.Data {
       var __typename: String? = null
       var _organization: GetUser.Data.Organization? = null
 
@@ -56,8 +55,7 @@ public object GetUser_ResponseAdapter {
     private object Organization : Adapter<GetUser.Data.Organization> {
       public val RESPONSE_NAMES: List<String> = listOf("id", "user")
 
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          GetUser.Data.Organization {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): GetUser.Data.Organization {
         var _id: String? = null
         var _user: List<GetUser.Data.Organization.User>? = null
 
@@ -88,11 +86,10 @@ public object GetUser_ResponseAdapter {
       }
 
       private object User : Adapter<GetUser.Data.Organization.User> {
-        public val RESPONSE_NAMES: List<String> = listOf("__typename", "firstName", "lastName",
-            "avatar")
+        public val RESPONSE_NAMES: List<String> =
+            listOf("__typename", "firstName", "lastName", "avatar")
 
-        override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-            GetUser.Data.Organization.User {
+        override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): GetUser.Data.Organization.User {
           var __typename: String? = null
           var _firstName: String? = null
           var _lastName: String? = null

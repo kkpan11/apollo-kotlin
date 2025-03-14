@@ -5,15 +5,15 @@
 //
 package com.example.data_builders.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.StringAdapter
-import com.apollographql.apollo3.api.evaluate
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.obj
-import com.apollographql.apollo3.api.possibleTypes
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.StringAdapter
+import com.apollographql.apollo.api.evaluate
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.obj
+import com.apollographql.apollo.api.possibleTypes
 import com.example.data_builders.NodeQuery
 import com.example.data_builders.fragment.DroidFragment
 import com.example.data_builders.fragment.HumanFragment
@@ -24,8 +24,7 @@ public object NodeQuery_ResponseAdapter {
   public object Data : Adapter<NodeQuery.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("node")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        NodeQuery.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): NodeQuery.Data {
       var _node: NodeQuery.Data.Node? = null
 
       while (true) {
@@ -52,8 +51,7 @@ public object NodeQuery_ResponseAdapter {
     private object Node : Adapter<NodeQuery.Data.Node> {
       public val RESPONSE_NAMES: List<String> = listOf("__typename", "id")
 
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          NodeQuery.Data.Node {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): NodeQuery.Data.Node {
         var __typename: String? = null
         var _id: String? = null
 
@@ -72,15 +70,13 @@ public object NodeQuery_ResponseAdapter {
         var _humanFragment: HumanFragment? = null
         if (possibleTypes("Human").evaluate(customScalarAdapters.falseVariables, __typename, customScalarAdapters.deferredFragmentIdentifiers, null)) {
           reader.rewind()
-          _humanFragment = com.example.data_builders.fragment.HumanFragmentImpl_ResponseAdapter.HumanFragment.fromJson(reader,
-              customScalarAdapters)
+          _humanFragment = com.example.data_builders.fragment.HumanFragmentImpl_ResponseAdapter.HumanFragment.fromJson(reader, customScalarAdapters)
         }
 
         var _droidFragment: DroidFragment? = null
         if (possibleTypes("Droid").evaluate(customScalarAdapters.falseVariables, __typename, customScalarAdapters.deferredFragmentIdentifiers, null)) {
           reader.rewind()
-          _droidFragment = com.example.data_builders.fragment.DroidFragmentImpl_ResponseAdapter.DroidFragment.fromJson(reader,
-              customScalarAdapters)
+          _droidFragment = com.example.data_builders.fragment.DroidFragmentImpl_ResponseAdapter.DroidFragment.fromJson(reader, customScalarAdapters)
         }
 
         return NodeQuery.Data.Node(
@@ -103,13 +99,11 @@ public object NodeQuery_ResponseAdapter {
         StringAdapter.toJson(writer, customScalarAdapters, value.id)
 
         if (value.humanFragment != null) {
-          com.example.data_builders.fragment.HumanFragmentImpl_ResponseAdapter.HumanFragment.toJson(writer,
-              customScalarAdapters, value.humanFragment)
+          com.example.data_builders.fragment.HumanFragmentImpl_ResponseAdapter.HumanFragment.toJson(writer, customScalarAdapters, value.humanFragment)
         }
 
         if (value.droidFragment != null) {
-          com.example.data_builders.fragment.DroidFragmentImpl_ResponseAdapter.DroidFragment.toJson(writer,
-              customScalarAdapters, value.droidFragment)
+          com.example.data_builders.fragment.DroidFragmentImpl_ResponseAdapter.DroidFragment.toJson(writer, customScalarAdapters, value.droidFragment)
         }
       }
     }

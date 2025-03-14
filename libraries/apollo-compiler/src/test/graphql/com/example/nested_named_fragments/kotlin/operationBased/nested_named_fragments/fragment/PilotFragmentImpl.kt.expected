@@ -5,21 +5,19 @@
 //
 package com.example.nested_named_fragments.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Fragment
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
-import com.example.nested_named_fragments.fragment.selections.pilotFragmentSelections
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Fragment
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
+import com.example.nested_named_fragments.fragment.selections.PilotFragmentSelections
 import com.example.nested_named_fragments.type.Person
 import kotlin.Any
 import kotlin.Boolean
 import kotlin.Int
 
 public class PilotFragmentImpl() : Fragment<PilotFragment> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -32,13 +30,12 @@ public class PilotFragmentImpl() : Fragment<PilotFragment> {
     // This fragment doesn't have any variable
   }
 
-  override fun adapter(): Adapter<PilotFragment> =
-      PilotFragmentImpl_ResponseAdapter.PilotFragment.obj()
+  override fun adapter(): Adapter<PilotFragment> = PilotFragmentImpl_ResponseAdapter.PilotFragment.obj()
 
   override fun rootField(): CompiledField = CompiledField.Builder(
     name = "data",
     type = Person.type
   )
-  .selections(selections = pilotFragmentSelections.__root)
+  .selections(selections = PilotFragmentSelections.__root)
   .build()
 }

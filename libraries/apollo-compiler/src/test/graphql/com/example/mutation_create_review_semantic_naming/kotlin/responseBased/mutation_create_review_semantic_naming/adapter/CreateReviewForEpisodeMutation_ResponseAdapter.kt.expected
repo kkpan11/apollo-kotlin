@@ -5,15 +5,15 @@
 //
 package com.example.mutation_create_review_semantic_naming.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.IntAdapter
-import com.apollographql.apollo3.api.NullableStringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.missingField
-import com.apollographql.apollo3.api.nullable
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.IntAdapter
+import com.apollographql.apollo.api.NullableStringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.missingField
+import com.apollographql.apollo.api.nullable
+import com.apollographql.apollo.api.obj
 import com.example.mutation_create_review_semantic_naming.CreateReviewForEpisodeMutation
 import kotlin.Int
 import kotlin.String
@@ -23,8 +23,7 @@ public object CreateReviewForEpisodeMutation_ResponseAdapter {
   public object Data : Adapter<CreateReviewForEpisodeMutation.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("createReview")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        CreateReviewForEpisodeMutation.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): CreateReviewForEpisodeMutation.Data {
       var _createReview: CreateReviewForEpisodeMutation.Data.CreateReview? = null
 
       while (true) {
@@ -51,8 +50,7 @@ public object CreateReviewForEpisodeMutation_ResponseAdapter {
     private object CreateReview : Adapter<CreateReviewForEpisodeMutation.Data.CreateReview> {
       public val RESPONSE_NAMES: List<String> = listOf("stars", "commentary")
 
-      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-          CreateReviewForEpisodeMutation.Data.CreateReview {
+      override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): CreateReviewForEpisodeMutation.Data.CreateReview {
         var _stars: Int? = null
         var _commentary: String? = null
 

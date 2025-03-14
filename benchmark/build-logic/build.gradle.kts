@@ -3,7 +3,7 @@ plugins {
   `java-gradle-plugin`
 }
 
-group = "com.apollographql.apollo3.benchmark"
+group = "com.apollographql.apollo.benchmark"
 
 dependencies {
   compileOnly(gradleApi())
@@ -11,10 +11,7 @@ dependencies {
   implementation(libs.okio)
   implementation(libs.ksp)
   implementation(libs.android.plugin)
-
-  implementation(libs.jar.relocator)
   implementation(libs.benchmark.gradle.plugin)
-  implementation(libs.asm)
 }
 
 

@@ -5,7 +5,7 @@
 //
 package com.example.input_object_variable_and_argument.type
 
-import com.apollographql.apollo3.api.EnumType
+import com.apollographql.apollo.api.EnumType
 import kotlin.Array
 import kotlin.Deprecated
 import kotlin.String
@@ -47,8 +47,8 @@ public enum class Episode(
   ;
 
   public companion object {
-    public val type: EnumType = EnumType("Episode", listOf("NEWHOPE", "EMPIRE", "JEDI",
-        "DEPRECATED", "new"))
+    public val type: EnumType =
+        EnumType("Episode", listOf("NEWHOPE", "EMPIRE", "JEDI", "DEPRECATED", "new"))
 
     /**
      * All [Episode] known at compile time
@@ -56,11 +56,11 @@ public enum class Episode(
     @Suppress("DEPRECATION")
     public val knownEntries: List<Episode>
       get() = listOf(
-        NEWHOPE,
-        EMPIRE,
-        JEDI,
-        DEPRECATED,
-        new)
+        Episode.NEWHOPE,
+        Episode.EMPIRE,
+        Episode.JEDI,
+        Episode.DEPRECATED,
+        Episode.new)
 
     /**
      * Returns all [Episode] known at compile time
@@ -71,7 +71,10 @@ public enum class Episode(
     )
     public fun knownValues(): Array<Episode> = knownEntries.toTypedArray()
 
-    public fun safeValueOf(rawValue: String): Episode = values().find { it.rawValue == rawValue } ?:
-        UNKNOWN__
+    /**
+     * Returns the [Episode] that represents the specified [rawValue].
+     * Note: unknown values of [rawValue] will return [UNKNOWN__]. You may want to update your schema instead of calling this function directly.
+     */
+    public fun safeValueOf(rawValue: String): Episode = values().find { it.rawValue == rawValue } ?: UNKNOWN__
   }
 }

@@ -4,40 +4,40 @@
 package test
 
 import app.cash.turbine.test
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.annotations.ApolloInternal
-import com.apollographql.apollo3.api.ApolloRequest
-import com.apollographql.apollo3.api.ApolloResponse
-import com.apollographql.apollo3.api.Operation
-import com.apollographql.apollo3.api.composeJsonResponse
-import com.apollographql.apollo3.api.json.buildJsonString
-import com.apollographql.apollo3.cache.normalized.ApolloStore
-import com.apollographql.apollo3.cache.normalized.CacheFirstInterceptor
-import com.apollographql.apollo3.cache.normalized.CacheOnlyInterceptor
-import com.apollographql.apollo3.cache.normalized.FetchPolicy
-import com.apollographql.apollo3.cache.normalized.api.CacheKey
-import com.apollographql.apollo3.cache.normalized.api.MemoryCacheFactory
-import com.apollographql.apollo3.cache.normalized.fetchPolicy
-import com.apollographql.apollo3.cache.normalized.isFromCache
-import com.apollographql.apollo3.cache.normalized.refetchPolicyInterceptor
-import com.apollographql.apollo3.cache.normalized.store
-import com.apollographql.apollo3.cache.normalized.watch
-import com.apollographql.apollo3.exception.ApolloCompositeException
-import com.apollographql.apollo3.exception.ApolloException
-import com.apollographql.apollo3.exception.ApolloHttpException
-import com.apollographql.apollo3.exception.CacheMissException
-import com.apollographql.apollo3.exception.JsonEncodingException
-import com.apollographql.apollo3.integration.normalizer.CharacterNameByIdQuery
-import com.apollographql.apollo3.integration.normalizer.HeroNameQuery
-import com.apollographql.apollo3.interceptor.ApolloInterceptor
-import com.apollographql.apollo3.interceptor.ApolloInterceptorChain
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.awaitRequest
-import com.apollographql.apollo3.mockserver.enqueueString
-import com.apollographql.apollo3.testing.enqueue
-import com.apollographql.apollo3.testing.internal.runTest
-import com.apollographql.apollo3.testing.receiveOrTimeout
-import kotlinx.coroutines.TimeoutCancellationException
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.annotations.ApolloInternal
+import com.apollographql.apollo.api.ApolloRequest
+import com.apollographql.apollo.api.ApolloResponse
+import com.apollographql.apollo.api.Operation
+import com.apollographql.apollo.api.composeJsonResponse
+import com.apollographql.apollo.api.json.buildJsonString
+import com.apollographql.apollo.cache.normalized.ApolloStore
+import com.apollographql.apollo.cache.normalized.CacheFirstInterceptor
+import com.apollographql.apollo.cache.normalized.CacheOnlyInterceptor
+import com.apollographql.apollo.cache.normalized.FetchPolicy
+import com.apollographql.apollo.cache.normalized.api.CacheKey
+import com.apollographql.apollo.cache.normalized.api.MemoryCacheFactory
+import com.apollographql.apollo.cache.normalized.fetchPolicy
+import com.apollographql.apollo.cache.normalized.isFromCache
+import com.apollographql.apollo.cache.normalized.refetchPolicyInterceptor
+import com.apollographql.apollo.cache.normalized.store
+import com.apollographql.apollo.cache.normalized.watch
+import com.apollographql.apollo.exception.ApolloCompositeException
+import com.apollographql.apollo.exception.ApolloException
+import com.apollographql.apollo.exception.ApolloHttpException
+import com.apollographql.apollo.exception.CacheMissException
+import com.apollographql.apollo.exception.JsonEncodingException
+import com.apollographql.apollo.integration.normalizer.CharacterNameByIdQuery
+import com.apollographql.apollo.integration.normalizer.HeroNameQuery
+import com.apollographql.apollo.interceptor.ApolloInterceptor
+import com.apollographql.apollo.interceptor.ApolloInterceptorChain
+import com.apollographql.apollo.testing.assertNoElement
+import com.apollographql.apollo.testing.awaitElement
+import com.apollographql.apollo.testing.internal.runTest
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.awaitRequest
+import com.apollographql.mockserver.enqueueError
+import com.apollographql.mockserver.enqueueString
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -66,7 +66,7 @@ class FetchPolicyTest {
     apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).store(store = store).build()
   }
 
-  private suspend fun tearDown() {
+  private fun tearDown() {
     mockServer.close()
     apolloClient.close()
   }
@@ -75,7 +75,7 @@ class FetchPolicyTest {
   fun cacheFirst() = runTest(before = { setUp() }, after = { tearDown() }) {
     val query = HeroNameQuery()
     val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
 
     // First query should hit the network and save in cache
     var response = apolloClient.query(query)
@@ -105,7 +105,7 @@ class FetchPolicyTest {
     apolloClient = apolloClient.newBuilder().build()
     val query = HeroNameQuery()
     val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
 
     // First query should hit the network and save in cache
     @Suppress("DEPRECATION")
@@ -145,7 +145,7 @@ class FetchPolicyTest {
 
     val query = HeroNameQuery()
     val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
 
     // First query should hit the network and save in cache
     @Suppress("DEPRECATION")
@@ -193,14 +193,14 @@ class FetchPolicyTest {
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkFirst)
 
     // First query should hit the network and save in cache
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     var response = call.execute()
 
     assertNotNull(response.data)
     assertFalse(response.isFromCache)
 
     // Now data is cached but it shouldn't be used since network will go through
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     response = call.execute()
 
     assertNotNull(response.data)
@@ -232,14 +232,14 @@ class FetchPolicyTest {
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkFirst)
 
     // First query should hit the network and save in cache
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     var response = call.execute()
 
     assertNotNull(response.data)
     assertFalse(response.isFromCache)
 
     // Now data is cached but it shouldn't be used since network will go through
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     response = call.execute()
 
     assertNotNull(response.data)
@@ -274,7 +274,7 @@ class FetchPolicyTest {
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkFirst)
 
     // First query should hit the network and save in cache
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     @Suppress("DEPRECATION")
     var responses = call.toFlowV3()
     responses.test {
@@ -285,7 +285,7 @@ class FetchPolicyTest {
     }
 
     // Now data is cached but it shouldn't be used since network will go through
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     @Suppress("DEPRECATION")
     responses = call.toFlowV3()
     responses.test {
@@ -323,7 +323,7 @@ class FetchPolicyTest {
     val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
 
     // First query should hit the network and save in cache
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     var response = apolloClient.query(query).execute()
 
     assertNotNull(response.data)
@@ -345,7 +345,7 @@ class FetchPolicyTest {
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly)
 
     // First query should hit the network and save in cache
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     val response = call.execute()
 
     assertNotNull(response.data)
@@ -365,7 +365,7 @@ class FetchPolicyTest {
     val call = apolloClient.query(query).fetchPolicy(FetchPolicy.NetworkOnly)
 
     // First query should hit the network and save in cache
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     @Suppress("DEPRECATION")
     val response = call.executeV3()
 
@@ -391,7 +391,7 @@ class FetchPolicyTest {
 
     // Initial state: everything fails
     // Cache Error + Network Error => Error
-    mockServer.enqueueString(statusCode = 500)
+    mockServer.enqueueError(statusCode = 500)
     apolloClient.query(query).fetchPolicy(FetchPolicy.CacheAndNetwork).execute().exception.let {
       assertIs<CacheMissException>(it)
       assertIs<ApolloHttpException>(it.suppressedExceptions.first())
@@ -399,7 +399,7 @@ class FetchPolicyTest {
 
     // Make the network return something
     // Cache Error + Network Success => 2 responses
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     var responses = apolloClient.query(query).fetchPolicy(FetchPolicy.CacheAndNetwork).toFlow().catch { caught = it }.toList()
 
     assertNull(caught)
@@ -413,7 +413,7 @@ class FetchPolicyTest {
     // Now cache is populated but make the network fail again
     // Cache Success + Network Error => 1 response with cache value + 1 response with network exception
     caught = null
-    mockServer.enqueueString(statusCode = 500)
+    mockServer.enqueueError(statusCode = 500)
     responses = apolloClient.query(query).fetchPolicy(FetchPolicy.CacheAndNetwork).toFlow().catch { caught = it }.toList()
 
     assertNull(caught)
@@ -425,7 +425,7 @@ class FetchPolicyTest {
     assertIs<ApolloHttpException>(responses[1].exception)
 
     // Cache Success + Network Success => 2 responses
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     responses = apolloClient.query(query).fetchPolicy(FetchPolicy.CacheAndNetwork).toFlow().toList()
 
     assertEquals(2, responses.size)
@@ -462,7 +462,7 @@ class FetchPolicyTest {
     var caught: Throwable? = null
     // Initial state: everything fails
     // Cache Error + Network Error => Error
-    mockServer.enqueueString(statusCode = 500)
+    mockServer.enqueueError(statusCode = 500)
 
     @Suppress("DEPRECATION")
     assertFailsWith<ApolloCompositeException> {
@@ -475,7 +475,7 @@ class FetchPolicyTest {
 
     // Make the network return something
     // Cache Error + Network Success => 1 response (no exception)
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     @Suppress("DEPRECATION")
     var responses = apolloClient.query(query).fetchPolicy(FetchPolicy.CacheAndNetwork)
         .toFlowV3().catch { caught = it }.toList()
@@ -489,7 +489,7 @@ class FetchPolicyTest {
     // Now cache is populated but make the network fail again
     // Cache Success + Network Error => 1 response + 1 network exception
     caught = null
-    mockServer.enqueueString(statusCode = 500)
+    mockServer.enqueueError(statusCode = 500)
     @Suppress("DEPRECATION")
     responses = apolloClient.query(query).fetchPolicy(FetchPolicy.CacheAndNetwork).toFlowV3().catch { caught = it }.toList()
 
@@ -500,7 +500,7 @@ class FetchPolicyTest {
     assertEquals("R2-D2", responses[0].data?.hero?.name)
 
     // Cache Success + Network Success => 1 response
-    mockServer.enqueue(query, data)
+    mockServer.enqueueString(query.composeJsonResponse(data))
     @Suppress("DEPRECATION")
     responses = apolloClient.query(query).fetchPolicy(FetchPolicy.CacheAndNetwork).toFlowV3().toList()
 
@@ -560,11 +560,7 @@ class FetchPolicyTest {
      * Because the query was disjoint, the watcher will see a cache miss and not receive anything.
      * Because initially the refetchPolicy uses CacheOnly, no network request will be made
      */
-    try {
-      channel.receiveOrTimeout(50)
-      error("An exception was expected")
-    } catch (_: TimeoutCancellationException) {
-    }
+    channel.assertNoElement()
 
     mockServer.enqueueString(
         buildJsonString {
@@ -586,7 +582,7 @@ class FetchPolicyTest {
         .fetchPolicy(FetchPolicy.NetworkOnly)
         .execute()
 
-    var response = channel.receiveOrTimeout()
+    var response = channel.awaitElement()
     assertTrue(response.isFromCache)
     assertEquals("Leila", response.data?.hero?.name)
 
@@ -612,7 +608,7 @@ class FetchPolicyTest {
     /**
      * This time the watcher should do a network request
      */
-    response = channel.receiveOrTimeout()
+    response = channel.awaitElement()
     assertFalse(response.isFromCache)
     assertEquals("Chewbacca", response.data?.hero?.name)
 
@@ -625,5 +621,71 @@ class FetchPolicyTest {
 
     job.cancel()
     channel.cancel()
+  }
+
+  @Test
+  fun isFromCache() = runTest(before = { setUp() }, after = { tearDown() }) {
+    val query = HeroNameQuery()
+    val data = HeroNameQuery.Data(HeroNameQuery.Hero("R2-D2"))
+    mockServer.enqueueString(query.composeJsonResponse(data))
+
+    // NetworkOnly / hit
+    var response = apolloClient.query(query)
+        .fetchPolicy(FetchPolicy.NetworkOnly)
+        .execute()
+    assertNotNull(response.data)
+    assertFalse(response.isFromCache)
+
+    // CacheOnly / hit
+    response = apolloClient.query(query)
+        .fetchPolicy(FetchPolicy.CacheOnly)
+        .execute()
+    assertNotNull(response.data)
+    assertTrue(response.isFromCache)
+
+    // CacheOnly / miss
+    store.clearAll()
+    response = apolloClient.query(query)
+        .fetchPolicy(FetchPolicy.CacheOnly)
+        .execute()
+    assertNull(response.data)
+    assertTrue(response.isFromCache)
+
+    // NetworkOnly / miss
+    mockServer.enqueueString("malformed")
+    response = apolloClient.query(query)
+        .fetchPolicy(FetchPolicy.NetworkOnly)
+        .execute()
+    assertNull(response.data)
+    assertFalse(response.isFromCache)
+
+    // CacheFirst / miss / miss
+    store.clearAll()
+    mockServer.enqueueString("malformed")
+    var responses = apolloClient.query(query)
+        .fetchPolicy(FetchPolicy.CacheFirst)
+        .toFlow()
+        .toList()
+    assertTrue(responses[0].isFromCache)
+    assertFalse(responses[1].isFromCache)
+
+    // NetworkFirst / miss / miss
+    store.clearAll()
+    mockServer.enqueueString("malformed")
+    responses = apolloClient.query(query)
+        .fetchPolicy(FetchPolicy.NetworkFirst)
+        .toFlow()
+        .toList()
+    assertFalse(responses[0].isFromCache)
+    assertTrue(responses[1].isFromCache)
+
+    // CacheAndNetwork / hit / hit
+    mockServer.enqueueString(query.composeJsonResponse(data))
+    responses = apolloClient.query(query)
+        .fetchPolicy(FetchPolicy.CacheAndNetwork)
+        .toFlow()
+        .toList()
+    assertTrue(responses[0].isFromCache)
+    assertFalse(responses[1].isFromCache)
   }
 }

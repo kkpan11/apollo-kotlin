@@ -187,18 +187,22 @@ fun setVersionInDocs(version: String, nextSnapshot: String) {
 
     val content = file.readText()
         // Plugin
-        .replace(Regex("""id\("com\.apollographql\.apollo3"\) version "(.+)""")) {
+        .replace(Regex("""id\("(com\.apollographql\.apollo.?)"\) version "(.+)""")) {
           """
-            id("com.apollographql.apollo3") version "$version"
+            id("${it.groupValues[1]}") version "$version"
           """.trimIndent()
         }
         // Dependencies
-        .replace(Regex(""""com\.apollographql\.apollo3:(.+):.+"""")) {
-          """"com.apollographql.apollo3:${it.groupValues[1]}:$version""""
+        .replace(Regex(""""(com\.apollographql\.apollo.?):(.+):.+"""")) {
+          """"${it.groupValues[1]}:${it.groupValues[2]}:$version""""
         }
         // Tutorial
         .replace(Regex("This tutorial uses `(.+)`")) {
           "This tutorial uses `$version`"
+        }
+        // index.md
+        .replace(Regex("The latest version is `(.+)`")) {
+          "The latest version is `$version`"
         }
         // Snapshots
         .replace(Regex("And then use the `(.+)` version for the plugin and libraries.")) {
@@ -214,29 +218,13 @@ fun setVersionInIntelliJPlugin(version: String) {
       """apollo4LatestVersion = "$version""""
     })
   }
-  File("intellij-plugin/src/test/testData/inspection/Apollo4Available.gradle.kts").let { file ->
-    file.writeText(file.readText()
-        .replace(Regex("""id\("com\.apollographql\.apollo3"\) version "4(.+)""")) {
-          """id("com.apollographql.apollo3") version "$version""""
-        }
-        .replace(Regex("""id\("com\.apollographql\.apollo3"\)\.version\("4(.+)""")) {
-          """id("com.apollographql.apollo3").version("$version")"""
-        }
-        .replace(Regex("""implementation\("com\.apollographql\.apollo3", "apollo-runtime", "4(.+)""")) {
-          """implementation("com.apollographql.apollo3", "apollo-runtime", "$version")"""
-        }
-        .replace(Regex("""implementation\("com\.apollographql\.apollo3:apollo-runtime:4(.+)""")) {
-          """implementation("com.apollographql.apollo3:apollo-runtime:$version")"""
-        }
-    )
-  }
   File("intellij-plugin/src/test/testData/migration/v3-to-v4/updateGradleDependenciesInLibsVersionsToml_after.versions.toml").let { file ->
     file.writeText(file.readText()
-        .replace(Regex(""""com\.apollographql\.apollo3:apollo-runtime:4(.+)"""")) {
-          """"com.apollographql.apollo3:apollo-runtime:$version""""
+        .replace(Regex(""""com\.apollographql\.apollo:apollo-runtime:4(.+)"""")) {
+          """"com.apollographql.apollo:apollo-runtime:$version""""
         }
-        .replace(Regex(""""com\.apollographql\.apollo3:4(.+)"""")) {
-          """"com.apollographql.apollo3:$version""""
+        .replace(Regex(""""com\.apollographql\.apollo:4(.+)"""")) {
+          """"com.apollographql.apollo:$version""""
         }
         .replace(Regex(""""4(.+)"""")) {
           """"$version""""

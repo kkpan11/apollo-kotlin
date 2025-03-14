@@ -5,11 +5,10 @@
 //
 package com.example.__schema.type
 
-import com.apollographql.apollo3.api.CustomScalarAdapters
+import com.apollographql.apollo.api.CustomScalarAdapters
 
 /**
  * A [CustomScalarAdapters] instance containing all the adapters known at build time
  */
 public val __CustomScalarAdapters: CustomScalarAdapters = CustomScalarAdapters.Builder()
       .build()
-

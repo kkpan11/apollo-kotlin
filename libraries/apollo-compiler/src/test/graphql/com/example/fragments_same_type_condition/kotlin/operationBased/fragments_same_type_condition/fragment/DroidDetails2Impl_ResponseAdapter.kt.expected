@@ -5,21 +5,19 @@
 //
 package com.example.fragments_same_type_condition.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.NullableStringAdapter
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.NullableStringAdapter
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
 import kotlin.String
 import kotlin.collections.List
 
 public object DroidDetails2Impl_ResponseAdapter {
-  public object DroidDetails2 :
-      Adapter<com.example.fragments_same_type_condition.fragment.DroidDetails2> {
+  public object DroidDetails2 : Adapter<com.example.fragments_same_type_condition.fragment.DroidDetails2> {
     public val RESPONSE_NAMES: List<String> = listOf("primaryFunction")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        com.example.fragments_same_type_condition.fragment.DroidDetails2 {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): com.example.fragments_same_type_condition.fragment.DroidDetails2 {
       var _primaryFunction: String? = null
 
       while (true) {

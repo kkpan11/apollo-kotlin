@@ -5,16 +5,16 @@
 //
 package com.example.data_builders
 
-import com.apollographql.apollo3.annotations.ApolloAdaptableWith
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.DefaultFakeResolver
-import com.apollographql.apollo3.api.FakeResolver
-import com.apollographql.apollo3.api.Query
-import com.apollographql.apollo3.api.buildData
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.annotations.ApolloAdaptableWith
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.DefaultFakeResolver
+import com.apollographql.apollo.api.FakeResolver
+import com.apollographql.apollo.api.Query
+import com.apollographql.apollo.api.buildData
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.data_builders.adapter.NodeQuery_ResponseAdapter
 import com.example.data_builders.fragment.DroidFragment
 import com.example.data_builders.fragment.HumanFragment
@@ -31,8 +31,6 @@ import kotlin.Unit
 import com.example.data_builders.type.Query as CompiledQuery
 
 public class NodeQuery() : Query<NodeQuery.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -88,13 +86,15 @@ public class NodeQuery() : Query<NodeQuery.Data> {
       override val __typename: String,
       override val id: String,
       override val homePlanet: String,
-    ) : Node, HumanFragment
+    ) : Node,
+        HumanFragment
 
     public data class DroidNode(
       override val __typename: String,
       override val id: String,
       override val primaryFunction: String,
-    ) : Node, DroidFragment
+    ) : Node,
+        DroidFragment
 
     public data class OtherNode(
       override val __typename: String,
@@ -130,13 +130,11 @@ public class NodeQuery() : Query<NodeQuery.Data> {
      * ```
      */
     public val OPERATION_DOCUMENT: String
-      get() =
-          "query NodeQuery { node { __typename id ...HumanFragment ...DroidFragment } }  fragment HumanFragment on Human { homePlanet }  fragment DroidFragment on Droid { primaryFunction }"
+      get() = "query NodeQuery { node { __typename id ...HumanFragment ...DroidFragment } }  fragment HumanFragment on Human { homePlanet }  fragment DroidFragment on Droid { primaryFunction }"
 
     public const val OPERATION_NAME: String = "NodeQuery"
 
-    public fun Data(resolver: FakeResolver = DefaultFakeResolver(__Schema.all),
-        block: QueryBuilder.() -> Unit = {}): Data = buildData(
+    public fun Data(resolver: FakeResolver = DefaultFakeResolver(__Schema.all), block: QueryBuilder.() -> Unit = {}): Data = buildData(
       CompiledQuery,
       block,
       NodeQuery_ResponseAdapter.Data,

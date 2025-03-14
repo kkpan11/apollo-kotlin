@@ -5,11 +5,11 @@
 //
 package com.example.enum_field.adapter
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.json.JsonReader
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.nullable
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.json.JsonReader
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.nullable
 import com.example.enum_field.TestQuery
 import com.example.enum_field.type.Gravity
 import com.example.enum_field.type.GravityAsEnum
@@ -18,12 +18,11 @@ import com.example.enum_field.type.adapter.Gravity_ResponseAdapter
 import kotlin.String
 import kotlin.collections.List
 
-public object TestQuery_ResponseAdapter {
+internal object TestQuery_ResponseAdapter {
   public object Data : Adapter<TestQuery.Data> {
     public val RESPONSE_NAMES: List<String> = listOf("gravity", "gravityAsEnum")
 
-    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters):
-        TestQuery.Data {
+    override fun fromJson(reader: JsonReader, customScalarAdapters: CustomScalarAdapters): TestQuery.Data {
       var _gravity: Gravity? = null
       var _gravityAsEnum: GravityAsEnum? = null
 
@@ -50,8 +49,7 @@ public object TestQuery_ResponseAdapter {
       Gravity_ResponseAdapter.nullable().toJson(writer, customScalarAdapters, value.gravity)
 
       writer.name("gravityAsEnum")
-      GravityAsEnum_ResponseAdapter.nullable().toJson(writer, customScalarAdapters,
-          value.gravityAsEnum)
+      GravityAsEnum_ResponseAdapter.nullable().toJson(writer, customScalarAdapters, value.gravityAsEnum)
     }
   }
 }

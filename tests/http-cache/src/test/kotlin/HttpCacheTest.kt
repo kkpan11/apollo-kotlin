@@ -1,30 +1,39 @@
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.cache.http.HttpFetchPolicy
-import com.apollographql.apollo3.cache.http.httpCache
-import com.apollographql.apollo3.cache.http.httpExpireTimeout
-import com.apollographql.apollo3.cache.http.httpFetchPolicy
-import com.apollographql.apollo3.cache.http.isFromHttpCache
-import com.apollographql.apollo3.exception.ApolloParseException
-import com.apollographql.apollo3.exception.HttpCacheMissException
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.awaitRequest
-import com.apollographql.apollo3.mockserver.enqueueString
-import com.apollographql.apollo3.network.okHttpClient
-import com.apollographql.apollo3.testing.enqueueData
-import com.apollographql.apollo3.testing.internal.runTest
+
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.http.HttpResponse
+import com.apollographql.apollo.api.toResponseJson
+import com.apollographql.apollo.cache.http.ApolloHttpCache
+import com.apollographql.apollo.cache.http.DiskLruHttpCache
+import com.apollographql.apollo.cache.http.HttpFetchPolicy
+import com.apollographql.apollo.cache.http.httpCache
+import com.apollographql.apollo.cache.http.httpExpireTimeout
+import com.apollographql.apollo.cache.http.httpFetchPolicy
+import com.apollographql.apollo.cache.http.isFromHttpCache
+import com.apollographql.apollo.exception.ApolloNetworkException
+import com.apollographql.apollo.exception.HttpCacheMissException
+import com.apollographql.apollo.exception.JsonEncodingException
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.awaitRequest
+import com.apollographql.mockserver.enqueueError
+import com.apollographql.mockserver.enqueueString
+import com.apollographql.apollo.network.okHttpClient
+import com.apollographql.apollo.testing.internal.runTest
 import httpcache.GetRandom2Query
 import httpcache.GetRandomQuery
 import httpcache.RandomSubscription
 import httpcache.SetRandomMutation
+import junit.framework.TestCase.assertFalse
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okio.FileSystem
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class HttpCacheTest {
   lateinit var mockServer: MockServer
@@ -48,14 +57,14 @@ class HttpCacheTest {
         .build()
   }
 
-  private suspend fun tearDown() {
+  private fun tearDown() {
     apolloClient.close()
     mockServer.close()
   }
 
   @Test
   fun DefaultIsCacheFirst() = runTest(before = { before() }, after = { tearDown() }) {
-    mockServer.enqueueData(data)
+    mockServer.enqueueString(data.toResponseJson())
 
     runBlocking {
       var response = apolloClient.query(GetRandomQuery()).execute()
@@ -70,7 +79,7 @@ class HttpCacheTest {
 
   @Test
   fun CacheFirst() = runTest(before = { before() }, after = { tearDown() }) {
-    mockServer.enqueueData(data)
+    mockServer.enqueueString(data.toResponseJson())
 
     runBlocking {
       var response = apolloClient.query(GetRandomQuery()).execute()
@@ -87,8 +96,8 @@ class HttpCacheTest {
 
   @Test
   fun NetworkOnly() = runTest(before = { before() }, after = { tearDown() }) {
-    mockServer.enqueueData(data)
-    mockServer.enqueueString(statusCode = 500)
+    mockServer.enqueueString(data.toResponseJson())
+    mockServer.enqueueError(statusCode = 500)
 
     runBlocking {
       val response = apolloClient.query(GetRandomQuery()).execute()
@@ -106,8 +115,8 @@ class HttpCacheTest {
 
   @Test
   fun NetworkFirst() = runTest(before = { before() }, after = { tearDown() }) {
-    mockServer.enqueueData(data)
-    mockServer.enqueueString(statusCode = 500)
+    mockServer.enqueueString(data.toResponseJson())
+    mockServer.enqueueError(statusCode = 500)
 
     runBlocking {
       var response = apolloClient.query(GetRandomQuery())
@@ -125,7 +134,7 @@ class HttpCacheTest {
 
   @Test
   fun Timeout() = runTest(before = { before() }, after = { tearDown() }) {
-    mockServer.enqueueData(data)
+    mockServer.enqueueString(data.toResponseJson())
 
     runBlocking {
       var response = apolloClient.query(GetRandomQuery()).execute()
@@ -149,8 +158,8 @@ class HttpCacheTest {
 
   @Test
   fun DifferentQueriesDoNotOverlap() = runTest(before = { before() }, after = { tearDown() }) {
-    mockServer.enqueueData(data)
-    mockServer.enqueueData(data2)
+    mockServer.enqueueString(data.toResponseJson())
+    mockServer.enqueueString(data2.toResponseJson())
 
     runBlocking {
       val response = apolloClient.query(GetRandomQuery()).execute()
@@ -171,7 +180,7 @@ class HttpCacheTest {
     val okHttpClient = OkHttpClient.Builder().addInterceptor(interceptor).build()
 
     val mockServer = MockServer()
-    mockServer.enqueueString(statusCode = 200)
+    mockServer.enqueueString("")
     val apolloClient = ApolloClient.Builder()
         .serverUrl(mockServer.url())
         .okHttpClient(okHttpClient)
@@ -198,7 +207,8 @@ class HttpCacheTest {
             "setRandom": "42"
           }
         }
-      """.trimIndent())
+      """.trimIndent()
+      )
       apolloClient.mutation(mutation)
           .httpFetchPolicy(HttpFetchPolicy.CacheOnly)
           .execute()
@@ -208,17 +218,70 @@ class HttpCacheTest {
     }
   }
 
+  /**
+   * Whether an incomplete Json is an IO error is still an open question:
+   * - [ResponseParser] considers yes (and throws an ApolloNetworkException)
+   * - [ProxySource] considers no (and doesn't abort)
+   *
+   * This isn't great and will need to be revisited if that ever becomes a bigger problem
+   */
   @Test
-  fun incompleteJsonIsNotCached() = runTest(before = { before() }, after = { tearDown() }) {
+  fun incompleteJsonTriggersNetworkException() = runTest(before = { before() }, after = { tearDown() }) {
     mockServer.enqueueString("""{"data":""")
-    assertIs<ApolloParseException>(
-        apolloClient.query(GetRandomQuery()).execute().exception
-    )
-    // Should not have been cached
-    assertIs<HttpCacheMissException>(
-        apolloClient.query(GetRandomQuery()).httpFetchPolicy(HttpFetchPolicy.CacheOnly).execute().exception
-    )
+    apolloClient.query(GetRandomQuery()).execute().apply {
+      assertIs<ApolloNetworkException>(exception)
+    }
+
+    apolloClient.query(GetRandomQuery()).httpFetchPolicy(HttpFetchPolicy.CacheOnly).execute().apply {
+      /**
+       * Because there's a disagreement between ProxySource and HttpCacheApolloInterceptor, the value is stored in the
+       * HTTP cache and is replayed here
+       */
+      assertIs<ApolloNetworkException>(exception)
+    }
   }
+
+  @Test
+  fun malformedJsonIsNotCached() = runTest(before = { before() }, after = { tearDown() }) {
+    mockServer.enqueueString("""{"data":}""")
+    apolloClient.query(GetRandomQuery()).execute().exception.apply {
+      assertIs<JsonEncodingException>(this)
+    }
+    // Should not have been cached
+    apolloClient.query(GetRandomQuery()).httpFetchPolicy(HttpFetchPolicy.CacheOnly).execute().apply {
+      assertIs<HttpCacheMissException>(exception)
+    }
+  }
+
+  @Test
+  fun ioErrorDoesNotRemoveData() = runTest(before = { before() }, after = { tearDown() }) {
+    mockServer.enqueueString("""
+        {
+          "data": {
+            "random": "42"
+          }
+        }
+      """.trimIndent())
+
+    // Warm the cache
+    apolloClient.query(GetRandomQuery()).execute().apply {
+      assertEquals(42, data?.random)
+      assertFalse(isFromHttpCache)
+    }
+
+    // Go offline
+    mockServer.close()
+    apolloClient.query(GetRandomQuery()).httpFetchPolicy(HttpFetchPolicy.NetworkOnly).execute().apply {
+      assertIs<ApolloNetworkException>(exception)
+    }
+
+    // The data is still there
+    apolloClient.query(GetRandomQuery()).execute().apply {
+      assertEquals(42, data?.random)
+      assertTrue(isFromHttpCache)
+    }
+  }
+
 
   @Test
   fun responseWithGraphQLErrorIsNotCached() = runTest(before = { before() }, after = { tearDown() }) {
@@ -229,7 +292,8 @@ class HttpCacheTest {
           },
           "errors": [ { "message": "GraphQL error" } ]
         }
-      """)
+      """
+    )
     apolloClient.query(GetRandomQuery()).execute()
     // Should not have been cached
     assertIs<HttpCacheMissException>(
@@ -243,7 +307,7 @@ class HttpCacheTest {
         .httpFetchPolicy(HttpFetchPolicy.CacheOnly)
         .build()
 
-    mockServer.enqueueData(data)
+    mockServer.enqueueString(data.toResponseJson())
 
     assertNotNull(
         apolloClient.query(GetRandomQuery())
@@ -256,12 +320,12 @@ class HttpCacheTest {
   @Test
   fun errorInSubscriptionDoesntRemoveCachedResult() = runTest(before = { before() }, after = { tearDown() }) {
     runBlocking {
-      mockServer.enqueueData(data)
+      mockServer.enqueueString(data.toResponseJson())
       var response = apolloClient.query(GetRandomQuery()).execute()
       assertEquals(42, response.data?.random)
       assertEquals(false, response.isFromHttpCache)
 
-      mockServer.enqueueData(data)
+      mockServer.enqueueString(data.toResponseJson())
       try {
         apolloClient.subscription(RandomSubscription()).execute()
       } catch (ignored: Exception) {
@@ -273,4 +337,46 @@ class HttpCacheTest {
     }
   }
 
+  @Test
+  fun httpCacheCleansPreviousInterceptor() = runTest {
+    mockServer = MockServer()
+    val httpCache1 = CountingApolloHttpCache()
+    mockServer.enqueueString(data.toResponseJson())
+    val apolloClient = ApolloClient.Builder()
+        .serverUrl(mockServer.url())
+        .httpCache(httpCache1)
+        .build()
+    apolloClient.query(GetRandomQuery()).execute()
+    assertEquals(1, httpCache1.writes)
+
+    val httpCache2 = CountingApolloHttpCache()
+    val apolloClient2 = apolloClient.newBuilder()
+        .httpCache(httpCache2)
+        .build()
+    mockServer.enqueueString(data.toResponseJson())
+    apolloClient2.query(GetRandomQuery()).execute()
+    assertEquals(1, httpCache1.writes)
+    assertEquals(1, httpCache2.writes)
+  }
+}
+
+private class CountingApolloHttpCache : ApolloHttpCache {
+  private val wrapped = run  {
+    val dir = File("build/httpCache")
+    dir.deleteRecursively()
+    DiskLruHttpCache(FileSystem.SYSTEM, dir, Long.MAX_VALUE)
+  }
+  var writes = 0
+  override fun write(response: HttpResponse, cacheKey: String): HttpResponse {
+    writes++
+    return wrapped.write(response, cacheKey)
+  }
+
+  override fun read(cacheKey: String): HttpResponse {
+    return wrapped.read(cacheKey)
+  }
+
+  override fun clearAll() {}
+
+  override fun remove(cacheKey: String) {}
 }

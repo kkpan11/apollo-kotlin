@@ -1,6 +1,6 @@
 plugins {
   id("org.jetbrains.kotlin.multiplatform")
-  id("com.apollographql.apollo3")
+  id("com.apollographql.apollo")
 }
 
 apolloTest()
@@ -15,6 +15,7 @@ kotlin {
 
     findByName("commonTest")?.apply {
       dependencies {
+        implementation(libs.apollo.mockserver)
         implementation(libs.apollo.testingsupport)
         implementation(libs.apollo.normalizedcache)
         implementation(libs.turbine)
@@ -35,7 +36,7 @@ apollo {
   }?.forEach {
     service(it.name) {
       if (it.name == "sample-server") {
-        schemaFile.set(file("../sample-server/src/main/resources/schema.graphqls"))
+        schemaFiles.from(file("../sample-server/src/main/resources/schema.graphqls"))
       }
       srcDir(it)
       packageName.set(it.name.replace("-", "."))

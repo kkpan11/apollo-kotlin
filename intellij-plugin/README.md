@@ -18,19 +18,20 @@ This plugin for Android Studio and IntelliJ helps you work with the
   - Apollo Android 2.x → Apollo Kotlin 3.x
   - Apollo Kotlin 3.x → Apollo Kotlin 4.x
   - `compat` codegen → `operationBased` codegen
+- Integration with [Rover](https://www.apollographql.com/docs/rover) for a rich schema editing experience
 - More to come!
 
 ## Compatibility
 
-- Most features are intended to work with Apollo Kotlin 4.x which is currently under development
+- Most features are intended to work with Apollo Kotlin 4.x
 - Automatic code generation works with Apollo Kotlin 3.x and above
 
 <!-- Plugin description end -->
 
 The plugin is supported on:
 
-- IntelliJ 2022.3 and above
-- Android Studio 2022.3 (Giraffe) and above
+- IntelliJ 2024.2.1 and above
+- Android Studio 2024.2.1 (Ladybug) and above
 
 ## Installation instructions
 
@@ -44,7 +45,7 @@ The plugin is published every Sunday in a specific **snapshots** repository. To 
 configured:
 
 <kbd>Settings</kbd> > <kbd>Plugins</kbd> > <kbd>⚙</kbd>️ > <kbd>Manage Plugin
-Repositories</kbd> > <kbd>+</kbd> > <kbd>https://raw.githubusercontent.com/apollographql/apollo-kotlin/main/intellij-plugin/snapshots/plugins.xml</kbd>
+Repositories</kbd> > <kbd>+</kbd> > <kbd>https://go.apollo.dev/ij-plugin-snapshots</kbd>
 
 <img src="assets/instructions-1-manage-repositories.png" width="600" />
 

@@ -1,10 +1,10 @@
 
 import com.apollographql.apollo.sample.server.SampleServer
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.cache.normalized.ApolloStore
-import com.apollographql.apollo3.cache.normalized.api.MemoryCacheFactory
-import com.apollographql.apollo3.cache.normalized.store
-import com.apollographql.apollo3.cache.normalized.watch
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.cache.normalized.ApolloStore
+import com.apollographql.apollo.cache.normalized.api.MemoryCacheFactory
+import com.apollographql.apollo.cache.normalized.store
+import com.apollographql.apollo.cache.normalized.watch
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filter
@@ -17,8 +17,8 @@ import kotlinx.coroutines.withTimeout
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
-import sample.server.TimeQuery
-import sample.server.TimeSubscription
+import sample.server.ValueSharedWithSubscriptionsQuery
+import sample.server.ValueSharedWithSubscriptionsSubscription
 import kotlin.test.assertEquals
 
 class CachedSubscriptionTest {
@@ -53,26 +53,23 @@ class CachedSubscriptionTest {
     runBlocking {
       val channel = Channel<Int>()
       val job = launch {
-        apolloClient.query(TimeQuery())
+        apolloClient.query(ValueSharedWithSubscriptionsQuery())
             .watch()
             // Ignore cache miss
             .filter { it.data != null }
-            .map { it.data!!.time }
+            .map { it.data!!.valueSharedWithSubscriptions }
             .collect {
               channel.send(it)
-              println("watcher received: $it")
             }
       }
 
       assertEquals(0, channel.receive())
 
-      println("starting subscription")
-      apolloClient.subscription(TimeSubscription())
+      apolloClient.subscription(ValueSharedWithSubscriptionsSubscription())
           .toFlow()
           .take(3)
-          .map { it.data!!.time }
+          .map { it.data!!.valueSharedWithSubscriptions }
           .collect {
-            println("subscription received: $it")
           }
 
       withTimeout(600) {

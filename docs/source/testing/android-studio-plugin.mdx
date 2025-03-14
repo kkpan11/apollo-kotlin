@@ -11,8 +11,8 @@ The plugin is available on the JetBrains plugin repository. To install it from t
 
 At the time of writing, the plugin is supported on:
 
-- IntelliJ 2022.3 and above
-- Android Studio 2022.3 (Giraffe) and above
+- IntelliJ 2024.2.1 and above
+- Android Studio 2024.2.1 (Ladybug) and above
 
 Please check the [plugin page](https://plugins.jetbrains.com/plugin/20645-apollo-graphql) for up to date information.
 
@@ -38,7 +38,7 @@ The file structure of the Apollo project is automatically contributed, so there 
 
 #### Kotlin → GraphQL
 
-When editing Kotlin code, <img src="images/gutter-icon.png" alt="Gutter icon" width="16" valign="middle" style="display: inline; margin: 2px;"/> icons will show next to references to generated operation and fragment classes.
+When editing Kotlin code, <img src="images/gutter-icon.png" alt="Gutter icon" width="16" valign="middle" style="display: inline; margin: 2px;" noZoom/> icons will appear next to references to generated operation and fragment classes.
 Clicking on them will navigate to the corresponding GraphQL definition.
 
 You can also go to the GraphQL definition with <kbd>Cmd</kbd> Click (Mac) or <kbd>Ctrl</kbd> Click (Windows / Linux) on an operation, field, enum, etc.
@@ -81,7 +81,7 @@ This uses the Introspection endpoint or the Registry that you can [configure](..
 You can open a GraphQL file in [Apollo Sandbox](https://studio.apollographql.com/sandbox/explorer) with right click | <kbd>Open in</kbd> | <kbd>Apollo Sandbox</kbd>.
 This is a handy way to share operations with coworkers for instance. There, they will be able to execute the operation and see the result.
 
-This is also accessible from the <img src="images/open-in-sandbox.png" alt="Sandbox icon" width="16" valign="middle" style="display: inline; margin: 2px;"/> button at the top of the editor.
+This is also accessible from the <img src="images/open-in-sandbox.png" alt="Sandbox icon" width="16" valign="middle" style="display: inline; margin: 2px;" noZoom/> button at the top of the editor.
 
 ### High latency fields
 
@@ -95,7 +95,7 @@ A quick fix is available to encapsulate the field in a fragment with the [`@defe
 
 For the plugin to be able to fetch the metrics, you need to configure your project with its [Apollo GraphOS API key](https://www.apollographql.com/docs/graphos/api-keys/). To do this, go to the plugin's settings: <kbd>Settings</kbd> | <kbd>Languages & Frameworks</kbd> | <kbd>GraphQL</kbd> | <kbd>Apollo Kotlin</kbd>. Here you can find the <kbd>API keys</kbd> table where you can add:
 - API key: should start with `service:` or `user:`
-- Graph ID: can be found on your graph page in Apollo Studio or is filled automatically if you provide a `service:` API key
+- Graph ID: can be found on your graph page in GraphOS Studio or is filled automatically if you provide a `service:` API key
 
 ### Normalized cache viewer
 
@@ -106,13 +106,13 @@ To open _in-memory_ caches, consult [the Apollo Debug Server section](apollo-deb
 
 You can also either drag and drop a `.db` file to the tool window to open it, or click on "Open file..." to pick a file to open.
 
-Once the cache is open, you can search for a record by ID, or browse them from the left side. Clicking on a record will show its fields and their values on the right side.
+Once the cache is open, you can search for records by cache key, or browse them from the left side. Clicking on a record will show its fields and their values on the right side.
 
 <WistiaEmbed videoId="5dyx4qu9ue"/>
 
 ## Weekly snapshots
 
-If you wish to try the latest features, you can install the weekly snapshots. To do so, add the following repository in <kbd>Settings</kbd> | <kbd>Plugins</kbd> | <kbd>⚙</kbd>️ | <kbd>Manage Plugin Repositories</kbd> | <kbd>+</kbd>: `https://raw.githubusercontent.com/apollographql/apollo-kotlin/main/intellij-plugin/snapshots/plugins.xml`.
+If you wish to try the latest features, you can install the weekly snapshots. To do so, add the following repository in <kbd>Settings</kbd> | <kbd>Plugins</kbd> | <kbd>⚙</kbd>️ | <kbd>Manage Plugin Repositories</kbd> | <kbd>+</kbd>: `https://go.apollo.dev/ij-plugin-snapshots`.
 
 Then installing the plugin by searching "Apollo GraphQL" in the Marketplace will install the latest snapshot.
 

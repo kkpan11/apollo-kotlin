@@ -17,29 +17,28 @@ object TestUtils {
   val androidLibraryPlugin = Plugin(id = "com.android.library", artifact = "libs.plugins.android.library")
   val kotlinJvmPlugin = Plugin(id = "org.jetbrains.kotlin.jvm", artifact = "libs.plugins.kotlin.jvm")
   val kotlinAndroidPlugin = Plugin(id = "org.jetbrains.kotlin.android", artifact = "libs.plugins.kotlin.android")
-  val apolloPlugin = Plugin(id = "com.apollographql.apollo3", artifact = "libs.plugins.apollo")
+  val apolloPlugin = Plugin(id = "com.apollographql.apollo", artifact = "libs.plugins.apollo")
 
   fun <T> withDirectory(testDir: String? = null, block: (File) -> T): T {
     val dest = if (testDir == null) {
+      // Tests are run in parallel, make sure 2 tests do not clobber themselves
       File.createTempFile("testProject", "", File(System.getProperty("user.dir")).resolve("build"))
     } else {
       File(System.getProperty("user.dir")).resolve("build/$testDir")
     }
     dest.deleteRecursively()
 
-    // See https://github.com/apollographql/apollo-android/issues/2184
+    // See https://github.com/apollographql/apollo-kotlin/issues/2184
     dest.mkdirs()
     File(dest, "gradle.properties").writeText("""
       |org.gradle.jvmargs=-Xmx4g 
       |
+      |org.gradle.unsafe.isolated-projects=true
     """.trimMargin())
 
-    return try {
-      block(dest)
-    } finally {
-      // Comment this line if you want to keep the directory around during development
-      dest.deleteRecursively()
-    }
+    // dest is kept around for debug purposes. All test directories are removed
+    // with the `cleanStaleTestProject` tasks before the next run
+    return block(dest)
   }
 
   fun withProject(
@@ -180,7 +179,11 @@ object TestUtils {
         .forwardStdOutput(output)
         .forwardStdError(error)
         .withProjectDir(projectDir)
-        .withDebug(true)
+        /*
+         * Disable withDebug because it breaks with CC
+         * See https://github.com/gradle/gradle/issues/22765#issuecomment-1339427241
+         */
+        //.withDebug(true)
         .withArguments("--stacktrace", *args)
         .apply {
           if (gradleVersion != null) {
@@ -212,4 +215,15 @@ fun File.generatedChild(path: String) = File(this, "build/generated/source/apoll
 fun File.replaceInText(oldValue: String, newValue: String) {
   val text = readText()
   writeText(text.replace(oldValue, newValue))
+}
+
+fun File.replaceInText(oldValue: Regex, newValue: String) {
+  val text = readText()
+  writeText(text.replace(oldValue, newValue))
+}
+
+fun File.disableIsolatedProjects() {
+  resolve("gradle.properties").let {
+    it.writeText(it.readText().replace("org.gradle.unsafe.isolated-projects=true", ""))
+  }
 }

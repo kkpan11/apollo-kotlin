@@ -5,12 +5,11 @@
 //
 package com.example.nested_named_fragments.fragment.selections
 
-import com.apollographql.apollo3.api.CompiledArgument
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CompiledFragment
-import com.apollographql.apollo3.api.CompiledSelection
-import com.apollographql.apollo3.api.list
-import com.apollographql.apollo3.api.notNull
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CompiledFragment
+import com.apollographql.apollo.api.CompiledSelection
+import com.apollographql.apollo.api.list
+import com.apollographql.apollo.api.notNull
 import com.example.nested_named_fragments.type.GraphQLID
 import com.example.nested_named_fragments.type.GraphQLString
 import com.example.nested_named_fragments.type.Person
@@ -18,7 +17,7 @@ import com.example.nested_named_fragments.type.StarshipPilotsConnection
 import com.example.nested_named_fragments.type.StarshipPilotsEdge
 import kotlin.collections.List
 
-public object starshipFragmentSelections {
+public object StarshipFragmentSelections {
   private val __node: List<CompiledSelection> = listOf(
         CompiledField.Builder(
           name = "__typename",
@@ -27,7 +26,7 @@ public object starshipFragmentSelections {
         CompiledFragment.Builder(
           typeCondition = "Person",
           possibleTypes = listOf("Person")
-        ).selections(pilotFragmentSelections.__root)
+        ).selections(PilotFragmentSelections.__root)
         .build()
       )
 
@@ -59,13 +58,7 @@ public object starshipFragmentSelections {
         CompiledField.Builder(
           name = "pilotConnection",
           type = StarshipPilotsConnection.type
-        ).arguments(listOf(
-          CompiledArgument.Builder("after").build(),
-          CompiledArgument.Builder("before").build(),
-          CompiledArgument.Builder("first").build(),
-          CompiledArgument.Builder("last").build()
-        ))
-        .selections(__pilotConnection)
+        ).selections(__pilotConnection)
         .build()
       )
 }

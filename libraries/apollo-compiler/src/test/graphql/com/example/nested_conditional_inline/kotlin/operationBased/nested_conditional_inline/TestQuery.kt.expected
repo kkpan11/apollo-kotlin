@@ -5,14 +5,14 @@
 //
 package com.example.nested_conditional_inline
 
-import com.apollographql.apollo3.annotations.ApolloAdaptableWith
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Optional
-import com.apollographql.apollo3.api.Query
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
+import com.apollographql.apollo.annotations.ApolloAdaptableWith
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Optional
+import com.apollographql.apollo.api.Query
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
 import com.example.nested_conditional_inline.adapter.TestQuery_ResponseAdapter
 import com.example.nested_conditional_inline.adapter.TestQuery_VariablesAdapter
 import com.example.nested_conditional_inline.selections.TestQuerySelections
@@ -26,8 +26,6 @@ import com.example.nested_conditional_inline.type.Query as CompiledQuery
 public data class TestQuery(
   public val episode: Optional<Episode?> = Optional.Absent,
 ) : Query<TestQuery.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun id(): String = OPERATION_ID
 
   override fun document(): String = OPERATION_DOCUMENT
@@ -39,8 +37,7 @@ public data class TestQuery(
     customScalarAdapters: CustomScalarAdapters,
     withDefaultValues: Boolean,
   ) {
-    TestQuery_VariablesAdapter.serializeVariables(writer, this, customScalarAdapters,
-        withDefaultValues)
+    TestQuery_VariablesAdapter.serializeVariables(writer, this, customScalarAdapters, withDefaultValues)
   }
 
   override fun adapter(): Adapter<Data> = TestQuery_ResponseAdapter.Data.obj()
@@ -165,8 +162,7 @@ public data class TestQuery(
      * ```
      */
     public val OPERATION_DOCUMENT: String
-      get() =
-          "query TestQuery(${'$'}episode: Episode) { hero(episode: ${'$'}episode) { __typename name ... on Human { friends { __typename name ... on Human { height(unit: FOOT) } } } ... on Droid { friends { __typename name ... on Human { height(unit: METER) } } } } }"
+      get() = "query TestQuery(${'$'}episode: Episode) { hero(episode: ${'$'}episode) { __typename name ... on Human { friends { __typename name ... on Human { height(unit: FOOT) } } } ... on Droid { friends { __typename name ... on Human { height(unit: METER) } } } } }"
 
     public const val OPERATION_NAME: String = "TestQuery"
   }

@@ -5,13 +5,13 @@
 //
 package com.example.multiple_fragments.fragment
 
-import com.apollographql.apollo3.api.Adapter
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CustomScalarAdapters
-import com.apollographql.apollo3.api.Fragment
-import com.apollographql.apollo3.api.json.JsonWriter
-import com.apollographql.apollo3.api.obj
-import com.example.multiple_fragments.fragment.selections.aFragmentSelections
+import com.apollographql.apollo.api.Adapter
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CustomScalarAdapters
+import com.apollographql.apollo.api.Fragment
+import com.apollographql.apollo.api.json.JsonWriter
+import com.apollographql.apollo.api.obj
+import com.example.multiple_fragments.fragment.selections.AFragmentSelections
 import com.example.multiple_fragments.type.A
 import kotlin.Any
 import kotlin.Boolean
@@ -20,8 +20,6 @@ import kotlin.String
 import kotlin.Suppress
 
 public class AFragmentImpl() : Fragment<AFragmentImpl.Data> {
-  override val ignoreErrors: Boolean = false
-
   override fun equals(other: Any?): Boolean = other != null && other::class == this::class
 
   override fun hashCode(): Int = this::class.hashCode()
@@ -40,12 +38,13 @@ public class AFragmentImpl() : Fragment<AFragmentImpl.Data> {
     name = "data",
     type = A.type
   )
-  .selections(selections = aFragmentSelections.__root)
+  .selections(selections = AFragmentSelections.__root)
   .build()
 
   public data class Data(
     override val node: Node?,
-  ) : AFragment, Fragment.Data {
+  ) : AFragment,
+      Fragment.Data {
     public sealed interface Node : AFragment.Node {
       override val __typename: String
 
@@ -65,10 +64,14 @@ public class AFragmentImpl() : Fragment<AFragmentImpl.Data> {
       override val __typename: String,
       override val field1: String?,
       override val field2: String?,
-    ) : Node, Fragment1, Fragment2, AFragment.ANodeNode
+    ) : Node,
+        Fragment1,
+        Fragment2,
+        AFragment.ANodeNode
 
     public data class OtherNode(
       override val __typename: String,
-    ) : Node, AFragment.Node
+    ) : Node,
+        AFragment.Node
   }
 }

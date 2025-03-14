@@ -5,18 +5,17 @@
 //
 package com.example.hero_name_query_long_name.selections
 
-import com.apollographql.apollo3.api.CompiledArgument
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CompiledSelection
-import com.apollographql.apollo3.api.CompiledVariable
-import com.apollographql.apollo3.api.notNull
+import com.apollographql.apollo.api.CompiledArgument
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CompiledSelection
+import com.apollographql.apollo.api.CompiledVariable
+import com.apollographql.apollo.api.notNull
 import com.example.hero_name_query_long_name.type.Character
 import com.example.hero_name_query_long_name.type.GraphQLString
+import com.example.hero_name_query_long_name.type.Query
 import kotlin.collections.List
 
-public object
-    TestQueryWithAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryLongNameSelections
-    {
+public object TestQueryWithAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryLongNameSelections {
   private val __hero: List<CompiledSelection> = listOf(
         CompiledField.Builder(
           name = "name",
@@ -31,8 +30,7 @@ public object
           type = Character.type
         ).alias("heroAVeryAVeryAVeryAVeryAVeryAVeryAV")
         .arguments(listOf(
-          CompiledArgument.Builder("episode").value(CompiledVariable("episodeAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryLongName")).build(),
-          CompiledArgument.Builder("listOfListOfStringArgs").build()
+          CompiledArgument.Builder(Query.__hero_episode).value(CompiledVariable("episodeAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryAVeryLongName")).build()
         ))
         .selections(__hero)
         .build()

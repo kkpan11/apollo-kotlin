@@ -5,11 +5,11 @@
 //
 package com.example.fragment_with_multiple_fieldsets.selections
 
-import com.apollographql.apollo3.api.CompiledField
-import com.apollographql.apollo3.api.CompiledFragment
-import com.apollographql.apollo3.api.CompiledSelection
-import com.apollographql.apollo3.api.notNull
-import com.example.fragment_with_multiple_fieldsets.fragment.selections.iFragmentSelections
+import com.apollographql.apollo.api.CompiledField
+import com.apollographql.apollo.api.CompiledFragment
+import com.apollographql.apollo.api.CompiledSelection
+import com.apollographql.apollo.api.notNull
+import com.example.fragment_with_multiple_fieldsets.fragment.selections.IFragmentSelections
 import com.example.fragment_with_multiple_fieldsets.type.GraphQLString
 import com.example.fragment_with_multiple_fieldsets.type.I
 import kotlin.collections.List
@@ -23,7 +23,7 @@ public object TestQuerySelections {
         CompiledFragment.Builder(
           typeCondition = "I",
           possibleTypes = listOf("A", "B")
-        ).selections(iFragmentSelections.__root)
+        ).selections(IFragmentSelections.__root)
         .build()
       )
 

@@ -1,20 +1,29 @@
 package com.apollographql.ijplugin.inspection
 
-import com.apollographql.apollo3.ast.GQLDefinition
-import com.apollographql.apollo3.ast.GQLDirectiveDefinition
-import com.apollographql.apollo3.ast.GQLEnumTypeDefinition
-import com.apollographql.apollo3.ast.GQLInputObjectTypeDefinition
-import com.apollographql.apollo3.ast.GQLNamed
-import com.apollographql.apollo3.ast.GQLScalarTypeDefinition
-import com.apollographql.apollo3.ast.rawType
+import com.apollographql.apollo.ast.GQLDefinition
+import com.apollographql.apollo.ast.GQLDirectiveDefinition
+import com.apollographql.apollo.ast.GQLEnumTypeDefinition
+import com.apollographql.apollo.ast.GQLInputObjectTypeDefinition
+import com.apollographql.apollo.ast.GQLNamed
+import com.apollographql.apollo.ast.GQLScalarTypeDefinition
+import com.apollographql.apollo.ast.rawType
 import com.apollographql.ijplugin.ApolloBundle
 import com.apollographql.ijplugin.gradle.gradleToolingModelService
 import com.apollographql.ijplugin.project.apolloProjectService
 import com.apollographql.ijplugin.telemetry.TelemetryEvent
 import com.apollographql.ijplugin.telemetry.telemetryService
+import com.apollographql.ijplugin.util.KOTLIN_LABS_DEFINITIONS
+import com.apollographql.ijplugin.util.KOTLIN_LABS_URL
+import com.apollographql.ijplugin.util.NULLABILITY_DEFINITIONS
+import com.apollographql.ijplugin.util.NULLABILITY_URL
 import com.apollographql.ijplugin.util.cast
-import com.apollographql.ijplugin.util.findChildrenOfType
-import com.apollographql.ijplugin.util.quoted
+import com.apollographql.ijplugin.util.createLinkDirective
+import com.apollographql.ijplugin.util.createLinkDirectiveSchemaExtension
+import com.apollographql.ijplugin.util.directives
+import com.apollographql.ijplugin.util.isImported
+import com.apollographql.ijplugin.util.linkDirectives
+import com.apollographql.ijplugin.util.nameForImport
+import com.apollographql.ijplugin.util.schemaFiles
 import com.apollographql.ijplugin.util.unquoted
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
@@ -26,7 +35,7 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.lang.jsgraphql.psi.GraphQLArrayValue
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective
 import com.intellij.lang.jsgraphql.psi.GraphQLElementFactory
-import com.intellij.lang.jsgraphql.psi.GraphQLSchemaExtension
+import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.GraphQLVisitor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
@@ -52,7 +61,8 @@ class ApolloMissingGraphQLDefinitionImportInspection : LocalInspectionTool() {
       highlightType: ProblemHighlightType,
   ) {
     if (directiveElement.name !in definitions.directives().map { it.name }) return
-    val message = if (highlightType == ProblemHighlightType.WEAK_WARNING) "inspection.missingGraphQLDefinitionImport.reportText.warning" else "inspection.missingGraphQLDefinitionImport.reportText.error"
+    val message =
+      if (highlightType == ProblemHighlightType.WEAK_WARNING) "inspection.missingGraphQLDefinitionImport.reportText.warning" else "inspection.missingGraphQLDefinitionImport.reportText.error"
     if (!directiveElement.isImported(definitionsUrl)) {
       val typeKind = ApolloBundle.message("inspection.missingGraphQLDefinitionImport.reportText.directive")
       holder.registerProblem(
@@ -115,13 +125,16 @@ private class ImportDefinitionQuickFix(
     val linkDirective = schemaFiles.flatMap { it.linkDirectives(definitionsUrl) }.firstOrNull()
 
     if (linkDirective == null) {
-      val linkDirectiveSchemaExtension = createLinkDirectiveSchemaExtension(project, setOf(element.nameForImport), definitions, definitionsUrl)
-      val extraSchemaFile = schemaFiles.firstOrNull { it.name == "extra.graphqls" }
+      val linkDirectiveSchemaExtension =
+        createLinkDirectiveSchemaExtension(project, setOf(element.nameForImport), definitions, definitionsUrl)
+      val extraSchemaFile = (element.containingFile as? GraphQLFile)?.takeIf { it.name == "extra.graphqls" }
+          ?: schemaFiles.firstOrNull { it.name == "extra.graphqls" }
       if (extraSchemaFile == null) {
         GraphQLElementFactory.createFile(project, linkDirectiveSchemaExtension.text).also {
           // Save the file to the project
           it.name = "extra.graphqls"
-          schemaFiles.first().containingDirectory!!.add(it)
+          val directory = schemaFiles.firstOrNull()?.containingDirectory ?: element.containingFile.containingDirectory ?: return
+          directory.add(it)
 
           // There's a new schema file, reload the configuration
           project.gradleToolingModelService.triggerFetchToolingModels()
@@ -132,47 +145,11 @@ private class ImportDefinitionQuickFix(
       }
     } else {
       val importedNames = buildSet {
-        addAll(linkDirective.arguments!!.argumentList.firstOrNull { it.name == "import" }?.value?.cast<GraphQLArrayValue>()?.valueList.orEmpty().map { it.text.unquoted() })
+        addAll(linkDirective.arguments!!.argumentList.firstOrNull { it.name == "import" }?.value?.cast<GraphQLArrayValue>()?.valueList.orEmpty()
+            .map { it.text.unquoted() })
         add(element.nameForImport)
       }
       linkDirective.replace(createLinkDirective(project, importedNames, definitions, definitionsUrl))
     }
   }
-}
-
-private fun createLinkDirectiveSchemaExtension(
-    project: Project,
-    importedNames: Set<String>,
-    definitions: List<GQLDefinition>,
-    definitionsUrl: String,
-): GraphQLSchemaExtension {
-  // If any of the imported name is a directive, add its argument types to the import list
-  val knownDefinitionNames = definitions.filterIsInstance<GQLNamed>().map { it.name }
-  val additionalNames = importedNames.flatMap { importedName ->
-    definitions.directives().firstOrNull { "@${it.name}" == importedName }
-        ?.arguments
-        ?.map { it.type.rawType().name }
-        ?.filter { it in knownDefinitionNames }.orEmpty()
-  }.toSet()
-
-  return GraphQLElementFactory.createFile(
-      project,
-      """
-        extend schema
-        @link(
-          url: "$definitionsUrl",
-          import: [${(importedNames + additionalNames).joinToString { it.quoted() }}]
-        )
-      """.trimIndent()
-  )
-      .findChildrenOfType<GraphQLSchemaExtension>().single()
-}
-
-private fun createLinkDirective(
-    project: Project,
-    importedNames: Set<String>,
-    definitions: List<GQLDefinition>,
-    definitionsUrl: String,
-): GraphQLDirective {
-  return createLinkDirectiveSchemaExtension(project, importedNames, definitions, definitionsUrl).directives.single()
 }

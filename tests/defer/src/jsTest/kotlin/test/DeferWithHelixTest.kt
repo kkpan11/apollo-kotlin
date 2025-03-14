@@ -1,8 +1,8 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.network.ws.GraphQLWsProtocol
-import com.apollographql.apollo3.testing.internal.runTest
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.network.websocket.WebSocketNetworkTransport
+import com.apollographql.apollo.testing.internal.runTest
 import defer.WithFragmentSpreadsQuery
 import defer.WithFragmentSpreadsSubscription
 import defer.WithInlineFragmentsQuery
@@ -43,8 +43,11 @@ class DeferWithHelixTest {
     helixServer = HelixServer(schema, port = Random.nextInt(1024, 65535))
     apolloClient = ApolloClient.Builder()
         .serverUrl(helixServer.url())
-        .webSocketServerUrl(helixServer.webSocketUrl())
-        .wsProtocol(GraphQLWsProtocol.Factory())
+        .subscriptionNetworkTransport(
+            WebSocketNetworkTransport.Builder()
+                .serverUrl(helixServer.webSocketUrl())
+                .build()
+        )
         .build()
   }
 

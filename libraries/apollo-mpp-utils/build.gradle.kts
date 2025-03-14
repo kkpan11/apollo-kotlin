@@ -3,7 +3,7 @@ plugins {
 }
 
 apolloLibrary(
-    javaModuleName = "com.apollographql.apollo3.mpp",
+    namespace = "com.apollographql.apollo.mpp",
     withLinux = false
 )
 

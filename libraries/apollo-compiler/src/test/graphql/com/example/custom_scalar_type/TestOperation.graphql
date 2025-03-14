@@ -9,4 +9,14 @@ query TestQuery {
     profileLink
     links
   }
+  nonNullTimestamp
+  nullableTimestamp
+  nonNullListOfNonNullTimestamp
+  nonNullListOfNullableTimestamp
+  nullableListOfNonNullTimestamp
+  nullableListOfNullableTimestamp
+}
+
+query ScalarWithGenericType {
+  listOfString
 }

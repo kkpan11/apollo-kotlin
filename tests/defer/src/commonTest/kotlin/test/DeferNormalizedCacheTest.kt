@@ -1,31 +1,30 @@
 package test
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.api.ApolloRequest
-import com.apollographql.apollo3.api.ApolloResponse
-import com.apollographql.apollo3.api.Error
-import com.apollographql.apollo3.api.Operation
-import com.apollographql.apollo3.cache.normalized.ApolloStore
-import com.apollographql.apollo3.cache.normalized.FetchPolicy
-import com.apollographql.apollo3.cache.normalized.api.CacheHeaders
-import com.apollographql.apollo3.cache.normalized.api.MemoryCacheFactory
-import com.apollographql.apollo3.cache.normalized.apolloStore
-import com.apollographql.apollo3.cache.normalized.fetchPolicy
-import com.apollographql.apollo3.cache.normalized.optimisticUpdates
-import com.apollographql.apollo3.cache.normalized.store
-import com.apollographql.apollo3.exception.ApolloException
-import com.apollographql.apollo3.exception.ApolloHttpException
-import com.apollographql.apollo3.exception.ApolloNetworkException
-import com.apollographql.apollo3.exception.CacheMissException
-import com.apollographql.apollo3.mockserver.MockServer
-import com.apollographql.apollo3.mockserver.awaitRequest
-import com.apollographql.apollo3.mockserver.enqueueMultipart
-import com.apollographql.apollo3.mockserver.enqueueString
-import com.apollographql.apollo3.mockserver.enqueueStrings
-import com.apollographql.apollo3.mpp.Platform
-import com.apollographql.apollo3.mpp.platform
-import com.apollographql.apollo3.network.NetworkTransport
-import com.apollographql.apollo3.testing.internal.runTest
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.api.ApolloRequest
+import com.apollographql.apollo.api.ApolloResponse
+import com.apollographql.apollo.api.Error
+import com.apollographql.apollo.api.Operation
+import com.apollographql.apollo.cache.normalized.ApolloStore
+import com.apollographql.apollo.cache.normalized.FetchPolicy
+import com.apollographql.apollo.cache.normalized.api.CacheHeaders
+import com.apollographql.apollo.cache.normalized.api.MemoryCacheFactory
+import com.apollographql.apollo.cache.normalized.apolloStore
+import com.apollographql.apollo.cache.normalized.fetchPolicy
+import com.apollographql.apollo.cache.normalized.optimisticUpdates
+import com.apollographql.apollo.cache.normalized.store
+import com.apollographql.apollo.exception.ApolloException
+import com.apollographql.apollo.exception.ApolloHttpException
+import com.apollographql.apollo.exception.ApolloNetworkException
+import com.apollographql.apollo.exception.CacheMissException
+import com.apollographql.apollo.network.NetworkTransport
+import com.apollographql.apollo.testing.internal.runTest
+import com.apollographql.mockserver.MockServer
+import com.apollographql.mockserver.assertNoRequest
+import com.apollographql.mockserver.awaitRequest
+import com.apollographql.mockserver.enqueueError
+import com.apollographql.mockserver.enqueueMultipart
+import com.apollographql.mockserver.enqueueStrings
 import com.benasher44.uuid.uuid4
 import defer.SimpleDeferQuery
 import defer.WithFragmentSpreadsMutation
@@ -54,7 +53,7 @@ class DeferNormalizedCacheTest {
   private suspend fun setUp() {
     store = ApolloStore(MemoryCacheFactory())
     mockServer = MockServer()
-    apolloClient = ApolloClient.Builder().httpEngine(getStreamingHttpEngine()).serverUrl(mockServer.url()).store(store).build()
+    apolloClient = ApolloClient.Builder().serverUrl(mockServer.url()).store(store).build()
   }
 
   private fun tearDown() {
@@ -83,7 +82,7 @@ class DeferNormalizedCacheTest {
 
     // Cache is not empty, so this doesn't go to the server
     val cacheActual = apolloClient.query(WithFragmentSpreadsQuery()).execute().dataOrThrow()
-    assertFails { mockServer.takeRequest() }
+    mockServer.assertNoRequest()
 
     // We get the last/fully formed data
     val cacheExpected = WithFragmentSpreadsQuery.Data(
@@ -203,7 +202,7 @@ class DeferNormalizedCacheTest {
     )
     assertEquals(networkExpected, networkActual)
 
-    mockServer.enqueueString(statusCode = 500)
+    mockServer.enqueueError(statusCode = 500)
     // Network will fail, so we get the cached version
     val cacheActual = apolloClient.query(WithFragmentSpreadsQuery()).execute().dataOrThrow()
 
@@ -333,7 +332,7 @@ class DeferNormalizedCacheTest {
     )
     assertResponseListEquals(networkExpected, networkActual)
 
-    mockServer.enqueueString(statusCode = 500)
+    mockServer.enqueueError(statusCode = 500)
     // Because of the error the cache is missing some fields, so we get a cache miss, and fallback to the network (which also fails)
     val exception = apolloClient.query(WithFragmentSpreadsQuery()).execute().exception
     check(exception is CacheMissException)
@@ -463,7 +462,8 @@ class DeferNormalizedCacheTest {
 
   @Test
   fun intermediatePayloadsAreCached() = runTest(before = { setUp() }, after = { tearDown() }) {
-    if (platform() == Platform.Js) {
+    @Suppress("DEPRECATION")
+    if (com.apollographql.apollo.testing.platform() == com.apollographql.apollo.testing.Platform.Js) {
       // TODO For now chunked is not supported on JS - remove this check when it is
       return@runTest
     }

@@ -24,6 +24,14 @@ subscription NumberIncremented {
 
 Unlike with queries and mutations, a subscription operation can include only _one_ field of the `Subscription` type. To subscribe to multiple fields, you create multiple subscription operations.
 
+<Note>
+
+Starting with 4.0.0, Apollo Kotlin provides a new experimental WebSockets implementation that provides better defaults, better retry and error handling APIs. It aims to replace the current implementation in the future.
+
+If you are interested in trying it out, please consult [the Experimental WebSockets page](../advanced/experimental-websockets).
+
+</Note>
+
 ## Configuring WebSocket subscriptions
 
 > By default, Apollo Kotlin uses the [`subscriptions-transport-ws`](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md) protocol for subscriptions via the `SubscriptionWsProtocol` class. **This protocol is no longer actively maintained.** It remains the default for backward compatibility purposes.
@@ -36,18 +44,21 @@ To use subscriptions over WebSocket, use `WebSocketNetworkTransport`:
 val apolloClient = ApolloClient.Builder()
     .subscriptionNetworkTransport(
         WebSocketNetworkTransport.Builder()
-            .serverUrl("https://apollo-fullstack-tutorial.herokuapp.com/graphql")
+            .serverUrl("https://example.com/graphql")
             .build()
     )
     .build()
 ```
+<Note>
 
-> **Note:** Apollo Kotlin supports both `https://` (or `http://`) and `wss://` (or `ws://`) protocols. Internally, `wss://` is renamed to `https://` and which one you use does not matter.
+Apollo Kotlin supports both `https://` (or `http://`) and `wss://` (or `ws://`) protocols. Internally, `wss://` is renamed to `https://` and which one you use does not matter.
+
+</Note>
 
 
 ### Customizing your WebSocket protocol
 
-By default, Apollo Kotlin uses [subscriptions-transport-ws](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md) for backward compatibility purposes, but it supports all of the following WebSocket subprotocols:
+By default, Apollo Kotlin uses [subscriptions-transport-ws](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md) for backward compatibility purposes, but it supports all the following WebSocket subprotocols:
 
 - [subscriptions-transport-ws](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md) (⚠️ not actively maintained!)
 - [graphql-ws](https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md)
@@ -68,7 +79,7 @@ val apolloClient = ApolloClient.Builder()
     .subscriptionNetworkTransport(
         WebSocketNetworkTransport.Builder()
             .protocol(GraphQLWsProtocol.Factory()) // highlight-line
-            .serverUrl("https://apollo-fullstack-tutorial.herokuapp.com/graphql")
+            .serverUrl("https://example.com/graphql")
             .build()
     )
     .build()
@@ -127,7 +138,7 @@ To use HTTP for subscriptions, use `HttpNetworkTransport` like so:
 val apolloClient = ApolloClient.Builder()
     .subscriptionNetworkTransport(
         HttpNetworkTransport.Builder()
-            .serverUrl("https://apollo-fullstack-tutorial.herokuapp.com/graphql")
+            .serverUrl("https://example.com/graphql")
             .build()
     )
     .build()
@@ -137,7 +148,7 @@ This is the only configuration required. `HttpNetworkTransport` will use [chunke
 
 ## Listening to a subscription
 
-After you configure the `NetworkTransport`, use `ApolloClient.subscribe` to open the connection and listen for changes:
+After you configure the `NetworkTransport`, use `ApolloClient.subscription` to open the connection and listen for changes:
 
 ```kotlin
 apolloClient.subscription(TripsBookedSubscription())
@@ -147,7 +158,7 @@ apolloClient.subscription(TripsBookedSubscription())
     }
 ```
 
-Because subscriptions are long-lasting operations, they return a `Flow<Response>` instead of a single `Response`.
+Because subscriptions are long-lasting operations, you should call `toFlow()` to get a `Flow<Response>` instead of a single `Response`.
 
 ## Terminating a subscription
 
@@ -162,3 +173,5 @@ Like queries, subscriptions support partial responses with GraphQL errors, which
 Network errors terminate the `Flow`, and you need to retry to get new updates. Depending on the situation, retrying might open a new WebSocket or restart the subscription.
 
 See also [this section](../advanced/websocket-errors) about WebSocket errors handling.
+
+
